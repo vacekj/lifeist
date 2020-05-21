@@ -50,8 +50,8 @@ function Item(
 ) {
 	return (
 		<div className="flex flex-col p-3 border-b border-gray-300">
-			<div className='text-gray-900 text-lg'>{props.name}</div>
-			<div className='text-gray-600'>{props.description}</div>
+			<div className="text-gray-900 text-lg">{props.name}</div>
+			<div className="text-gray-600">{props.description}</div>
 		</div>
 	);
 }

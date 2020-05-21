@@ -1,7 +1,8 @@
 import React from "react";
-import { Switch, Route, BrowserRouter  as Router } from "react-router-dom";
+import { Switch, Route, BrowserRouter as Router } from "react-router-dom";
 import Home from "./Components/Home";
 import GoalsList from "./Components/GoalsList";
+import AddItem from "./Components/AddItem";
 
 function App() {
 	return (
@@ -9,7 +10,7 @@ function App() {
 			<Router>
 				<Switch>
 					<Route path={"/add"}>
-						<Home />
+						<AddItem />
 					</Route>
 					<Route path={"/dashboard"}>
 						<GoalsList />
