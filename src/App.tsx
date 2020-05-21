@@ -1,27 +1,27 @@
 import React from "react";
-import { Switch, Route } from "react-router-dom";
+import { Switch, Route, BrowserRouter  as Router } from "react-router-dom";
 import Home from "./Components/Home";
+import GoalsList from "./Components/GoalsList";
 
 function App() {
 	return (
 		<div>
-			<Switch>
-				<Route path={"/"}>
-					<Home />
-				</Route>
-
-				<Route path={"/add"}>
-					<Home />
-				</Route>
-
-				<Route path={"/dashboard"}>
-					<Home />
-				</Route>
-
-				<Route path={"/goal/:id"}>
-					<Home />
-				</Route>
-			</Switch>
+			<Router>
+				<Switch>
+					<Route path={"/add"}>
+						<Home />
+					</Route>
+					<Route path={"/dashboard"}>
+						<GoalsList />
+					</Route>
+					<Route path={"/goal/:id"}>
+						<Home />
+					</Route>
+					<Route path={"/"}>
+						<Home />
+					</Route>
+				</Switch>
+			</Router>
 		</div>
 	);
 }
