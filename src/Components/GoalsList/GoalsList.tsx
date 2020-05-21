@@ -3,16 +3,16 @@ import React from "react";
 const GoalsList = () => {
 	const goals = [
 		{
-			name: "3SOME",
-			description: "Share a Varna 14 mojada w/ @vacekjo"
+			name: "Buy 1 full Bitcoin",
+			description: "Stack Satoshis until I reach 1 BTC"
 		},
 		{
-			name: "3SOME",
-			description: "FFM"
+			name: "Get 32 ETH",
+			description: "Get 32 ETH to create a validation node (staking)"
 		},
 		{
-			name: "Jizz out Content",
-			description: "content"
+			name: "Build first DeFi app",
+			description: "Deploy a decentralized application to the Ethereum mainnet within the next year"
 		}
 	];
 	return (
