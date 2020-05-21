@@ -12,7 +12,8 @@ const GoalsList = () => {
 		},
 		{
 			name: "Build first DeFi app",
-			description: "Deploy a decentralized application to the Ethereum mainnet within the next year"
+			description:
+				"Deploy a decentralized application to the Ethereum mainnet within the next year"
 		}
 	];
 	return (
