@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { useParams } from "react-router-dom";
 
-const AddItem = () => {
+const EditItem = () => {
+	let { id } = useParams();
 	return (
 		<div className="flex flex-col">
 			{/* Header */}
@@ -18,7 +20,7 @@ const AddItem = () => {
 						/>
 					</svg>
 				</button>
-				<h1 className="text-2xl">Add a new item</h1>
+				<h1 className="text-2xl">Edit item</h1>
 				<button>
 					<svg className="text-gray-900 w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
 						<path
@@ -42,4 +44,4 @@ const AddItem = () => {
 	);
 };
 
-export default AddItem;
+export default EditItem;

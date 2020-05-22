@@ -4,6 +4,8 @@ import Home from "./Components/Home";
 import GoalsList from "./Components/GoalsList";
 import AddItem from "./Components/AddItem";
 import firebase from "firebase";
+import EditItem from "./Components/EditItem";
+import GoalView from "./Components/GoalView";
 
 function App() {
 	const firebaseConfig = {
@@ -28,11 +30,14 @@ function App() {
 					<Route path={"/add"}>
 						<AddItem />
 					</Route>
+					<Route path={"/edit"}>
+						<EditItem />
+					</Route>
 					<Route path={"/dashboard"}>
 						<GoalsList />
 					</Route>
-					<Route path={"/goal/:id"}>
-						<Home />
+					<Route path={"/goal"}>
+						<GoalView />
 					</Route>
 					<Route path={"/"}>
 						<Home />
