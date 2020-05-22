@@ -6,11 +6,12 @@ const GoalView = () => {
 	let { id } = useParams();
 	const data = {
 		name: "Buy a Tesla",
-		description: "Cybertruck uwu"
+		description:
+			"Lorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsumLorem ipsum"
 	};
 	return (
 		<div>
-			<div className="flex items-center justify-between p-3 border-b border-gray-300">
+			<div className="flex items-center justify-between p-5 border-b border-gray-300">
 				<button>
 					<svg fill="currentColor" className="w-8 h-8" viewBox="0 0 20 20">
 						<path
@@ -33,7 +34,7 @@ const GoalView = () => {
 				</button>
 			</div>
 			<div>
-				<div className="bg-blue-200 p-2">
+				<div className="bg-gray-200 p-5 m-3">
 					<p>{data.description}</p>
 				</div>
 			</div>
