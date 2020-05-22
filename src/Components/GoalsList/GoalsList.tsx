@@ -1,30 +1,79 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import * as firebase from "firebase";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 const GoalsList = () => {
-	const goals = [
-		{
-			name: "Buy 1 full Bitcoin",
-			description: "Stack Satoshis until I reach 1 BTC"
-		},
-		{
-			name: "Get 32 ETH",
-			description: "Get 32 ETH to create a validation node (staking)"
-		},
-		{
-			name: "Build first DeFi app",
-			description:
-				"Deploy a decentralized application to the Ethereum mainnet within the next year"
+	const [error, setError] = useState<any>(null);
+	const [goals, setGoals] = useState<any[]>([]);
+
+	const [user, loading, authError] = useAuthState(firebase.auth());
+
+	useEffect(() => {
+		if (user) {
+			updateGoals(user);
 		}
-	];
+	}, [loading, authError]);
+
+	function updateGoals(user: firebase.User) {
+		firebase
+			.firestore()
+			.collection("goals")
+			.where("owner_uid", "==", user.uid)
+			.get()
+			.then(goals => goals.docs)
+			.then(goals => goals.map(g => g.data()))
+			.then(goals => setGoals(goals))
+			.catch(e => {
+				setError(true);
+			});
+	}
+
 	return (
-		<div className={"flex flex-col "}>
-			<Header />
-			{goals.map((g, i) => {
-				return <Item key={i} {...g} />;
-			})}
-		</div>
+		<>
+			<Modal onClose={() => setError(null)} showing={error !== null}>
+				There was an error loading your bucketlist.
+			</Modal>
+			<div className={"flex flex-col"}>
+				<Header />
+				<div className="p-3">
+					{goals.length > 0 ? (
+						goals.map((g, i) => {
+							return <Item key={i} {...g} />;
+						})
+					) : (
+						<div className="flex items-center justify-center text-xl text-gray-700">
+							Add a goal by tapping the Plus icon
+						</div>
+					)}
+				</div>
+			</div>
+		</>
 	);
 };
+
+function Modal(
+	props: React.ComponentProps<"div"> & {
+		showing: boolean;
+		onClose: () => any;
+	}
+) {
+	return (
+		<div
+			onClick={props.showing ? props.onClose : () => {
+			}}
+			className={`${
+				props.showing ? "" : "opacity-0"
+			} fixed w-full h-full top-0 left-0 flex items-center justify-center`}
+		>
+			<div className="modal-overlay absolute w-full h-full bg-gray-900 opacity-50" />
+
+			<div
+				className="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
+				<div className="modal-content py-4 text-left px-6">{props.children}</div>
+			</div>
+		</div>
+	);
+}
 
 function Header() {
 	return (
@@ -45,13 +94,13 @@ function Header() {
 
 function Item(
 	props: React.ComponentProps<"div"> & {
-		name: string;
+		title: string;
 		description: string;
 	}
 ) {
 	return (
 		<div className="flex flex-col p-3 border-b border-gray-300">
-			<div className="text-gray-900 text-lg">{props.name}</div>
+			<div className="text-gray-900 text-lg">{props.title}</div>
 			<div className="text-gray-600">{props.description}</div>
 		</div>
 	);
