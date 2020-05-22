@@ -7,12 +7,10 @@ const Home = () => {
 
 	firebase.auth().onAuthStateChanged(user => {
 		if (firebase.auth().currentUser !== null) {
-			setUser(firebase.auth().currentUser);
 			history.push("/dashboard");
 		}
 	});
 
-	const [user, setUser] = useState<null | firebase.User>(null);
 	const googleProvider = new firebase.auth.GoogleAuthProvider();
 
 	return (
@@ -25,7 +23,7 @@ const Home = () => {
 				<Quote author={"Jolanda"} text={"Hodně budeš někde."} />
 			</section>
 
-			<div>{user?.email ?? "LOG IN YOU FUCKER"}</div>
+			<div>{"LOG IN YOU FUCKER"}</div>
 			<section>
 				<button
 					onClick={() => {
