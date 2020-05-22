@@ -5,3 +5,9 @@ select,
 a {
     -webkit-tap-highlight-color: rgba(0,0,0,0);
 }
+
+button:active button:focus {
+    outline: 0;
+    border: none;
+    -moz-outline-style: none;
+}
