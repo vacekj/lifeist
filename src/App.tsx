@@ -8,6 +8,7 @@ import "firebase/performance";
 import EditGoal from "./Components/EditGoal";
 import GoalDetail from "./Components/GoalDetail";
 import "./App.css";
+import Profile from "./Components/Profile";
 
 function App() {
 	const firebaseConfig = {
@@ -31,21 +32,13 @@ function App() {
 		<div className="bg-background-primary text-white md:max-w-4xl md:m-auto">
 			<Router>
 				<Switch>
-					<Route path={"/add"}>
-						<AddGoal />
-					</Route>
-					<Route path={"/edit/:id"}>
-						<EditGoal />
-					</Route>
-					<Route path={"/dashboard"}>
-						<Dashboard />
-					</Route>
-					<Route path={"/goal/:id"}>
-						<GoalDetail />
-					</Route>
-					<Route path={"/"}>
-						<Home />
-					</Route>
+					<Route path={"/add"} children={<AddGoal />} />
+					<Route path={"/edit/:id"} children={<EditGoal />} />
+					<Route path={"/dashboard"} children={<Dashboard />} />
+					<Route path={"/goal/:id"} children={<GoalDetail />} />
+					<Route path={"/profile"} children={<Profile />} />
+
+					<Route path={"/"} children={<Home />} />
 				</Switch>
 			</Router>
 		</div>

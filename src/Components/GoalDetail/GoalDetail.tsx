@@ -207,7 +207,7 @@ export function Button(props: React.ComponentProps<"button">) {
 		<button
 			{...props}
 			className={
-				"py-6 font-medium flex justify-center items-center rounded bg-background-lighter hover:bg-background-lightest " +
+				"py-4 px-6 font-medium flex justify-center items-center rounded bg-background-lighter hover:bg-background-lightest " +
 				(props.className ?? "")
 			}
 		>
