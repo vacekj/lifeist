@@ -28,7 +28,7 @@ function App() {
 	}
 
 	return (
-		<div className="bg-background-primary text-white">
+		<div className="bg-background-primary text-white md:max-w-4xl md:m-auto">
 			<Router>
 				<Switch>
 					<Route path={"/add"}>
