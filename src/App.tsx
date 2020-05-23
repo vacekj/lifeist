@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import Home from "./Components/Home";
 import Dashboard from "./Components/Dashboard";
 import AddGoal from "./Components/AddGoal";
-import firebase from "firebase";
+import * as firebase from "firebase";
+import "firebase/performance";
 import EditGoal from "./Components/EditGoal";
 import GoalDetail from "./Components/GoalDetail";
 import "./App.css";
@@ -22,6 +23,8 @@ function App() {
 
 	if (!firebase.apps.length) {
 		firebase.initializeApp(firebaseConfig);
+		const perf = firebase.performance();
+		firebase.analytics();
 	}
 
 	return (
