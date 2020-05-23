@@ -1,11 +1,12 @@
 import React from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useHistory, useParams } from "react-router-dom";
 import { useDocument, useDocumentData } from "react-firebase-hooks/firestore";
 import firebase from "firebase";
 import Goal from "../../Types/Goal.type";
 
 const GoalDetail = () => {
 	let { id } = useParams();
+	const history = useHistory();
 
 	function toggleCompleteGoal() {
 		goal?.ref.update({
@@ -49,15 +50,30 @@ const GoalDetail = () => {
 			</div>
 			<div className="p-5">
 				<h1 className="text-3xl font-medium">{goalData.title}</h1>
-				<p className="text-gray-2 text-lg">{goalData.description}</p>
+				<p
+					className={
+						"text-gray-2 text-lg " +
+						(!goalData.description.length ? "italic text-gray-3" : "")
+					}
+				>
+					{goalData.description.length ? goalData.description : "No description"}
+				</p>
 				<div className="w-full my-3">
-					<Button className="mb-3" onClick={toggleCompleteGoal}>
-						<span className="text-xl text-green-primary">
+					<Button
+						className={
+							"mb-3 " +
+							(goalData.completed
+								? "bg-green-1 hover:bg-green-1 text-black"
+								: "text-green-1")
+						}
+						onClick={toggleCompleteGoal}
+					>
+						<span className="text-xl">
 							{goalData.completed ? "Undo Mark as Completed" : "Mark as Completed"}
 						</span>
 						{goalData.completed ? (
 							<svg
-								className="w-8 h-8 ml-1 text-green-primary"
+								className="w-8 h-8 ml-1"
 								fill="none"
 								strokeLinecap="round"
 								strokeLinejoin="round"
@@ -68,11 +84,7 @@ const GoalDetail = () => {
 								<path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
 							</svg>
 						) : (
-							<svg
-								className="w-8 h-8 ml-1 text-green-primary"
-								fill="currentColor"
-								viewBox="0 0 20 20"
-							>
+							<svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 20 20">
 								<path
 									d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
 									clipRule="evenodd"
@@ -114,7 +126,7 @@ const GoalDetail = () => {
 								</svg>
 							)}
 						</Button>
-						<Button className="ml-3">
+						<Button className="ml-3" onClick={() => history.push("/edit/" + id)}>
 							<span className="text-xl text-gray-100">Edit</span>
 							<svg
 								className="w-8 h-8 ml-1 text-gray-100"
@@ -138,8 +150,8 @@ function Button(props: React.ComponentProps<"button">) {
 		<button
 			{...props}
 			className={
-				(props.className ?? "") +
-				" py-6 font-medium w-full flex justify-center items-center rounded bg-background-lighter hover:bg-background-lightest"
+				"py-6 font-medium w-full flex justify-center items-center rounded bg-background-lighter hover:bg-background-lightest " +
+				(props.className ?? "")
 			}
 		>
 			{props.children}

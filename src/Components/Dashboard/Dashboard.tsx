@@ -86,11 +86,7 @@ function Header() {
 		<div className="flex justify-between p-5 pl-6 items-center">
 			<h1 className={"text-3xl font-medium "}>My bucketlist</h1>
 			<Link to={"/add"} className={"focus:outline-none focus:bg-none"}>
-				<svg
-					className="text-green-primary w-10 h-10"
-					fill="currentColor"
-					viewBox="0 0 20 20"
-				>
+				<svg className="text-green-1 w-10 h-10" fill="currentColor" viewBox="0 0 20 20">
 					<path
 						d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
 						clipRule="evenodd"
@@ -124,7 +120,7 @@ function Item(
 			elem = (
 				<Link
 					to={"/goal/" + props.uid}
-					className="hover:bg-green-primary bg-green-primary text-black flex flex-col p-5 mb-3 rounded bg-background-lighter"
+					className="hover:bg-green-1 bg-green-1 text-black flex flex-col p-5 mb-3 rounded bg-background-lighter"
 				>
 					<div className="text-lg font-medium">{props.title}</div>
 					<div>{props.description}</div>

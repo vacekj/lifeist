@@ -47,7 +47,7 @@ const AddGoal = () => {
 						/>
 					</svg>
 				</Link>
-				<h1 className="text-2xl">Add a new item</h1>
+				<h1 className="text-2xl">Add a Goal</h1>
 				<button onClick={onSubmit}>
 					<svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
 						<path
