@@ -55,17 +55,19 @@ const Dashboard = () => {
 						goals?.length > 0 &&
 						goals.map((g, i) => {
 							return (
-								<Item
-									variant={
-										g.completed
-											? "completed"
-											: g.archived
-											? "archived"
-											: "normal"
-									}
-									key={i}
-									{...g}
-								/>
+								<Fade cascade top duration={500}>
+									<Item
+										variant={
+											g.completed
+												? "completed"
+												: g.archived
+												? "archived"
+												: "normal"
+										}
+										key={i}
+										{...g}
+									/>
+								</Fade>
 							);
 						})}
 
@@ -101,7 +103,7 @@ function Header() {
 function Item(
 	props: React.ComponentProps<"div"> & Goal & { variant?: "normal" | "completed" | "archived" }
 ) {
-	let elem: JSX.Element | undefined = undefined;
+	let elem: JSX.Element | undefined;
 	switch (props.variant) {
 		case "normal":
 			elem = (
