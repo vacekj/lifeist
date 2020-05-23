@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import * as firebase from "firebase";
-import { useHistory } from "react-router-dom";
+import { Link, useHistory } from "react-router-dom";
 
 const AddItem = () => {
 	const history = useHistory();
@@ -31,7 +31,7 @@ const AddItem = () => {
 		<div className="flex flex-col">
 			{/* Header */}
 			<div className="flex items-center justify-between p-3 border-b border-gray-300">
-				<button>
+				<Link to={"/dashboard"}>
 					<svg
 						fill="currentColor"
 						className={"text-gray-900 w-8 h-8"}
@@ -43,7 +43,7 @@ const AddItem = () => {
 							fillRule="evenodd"
 						/>
 					</svg>
-				</button>
+				</Link>
 				<h1 className="text-2xl">Add a new item</h1>
 				<button onClick={onSubmit}>
 					<svg className="text-gray-900 w-8 h-8" fill="currentColor" viewBox="0 0 20 20">

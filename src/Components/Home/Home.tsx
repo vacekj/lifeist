@@ -1,4 +1,4 @@
-import React, { Component, useContext, useState } from "react";
+import React from "react";
 import * as firebase from "firebase";
 import { useHistory } from "react-router-dom";
 
@@ -16,7 +16,7 @@ const Home = () => {
 	return (
 		<main className="w-full flex flex-col p-3">
 			<nav className="mb-3">
-				<a className="text-3xl text-gray-900 font-sans">BucketList</a>
+				<a className="text-3xl font-bold font-sans">BucketList</a>
 			</nav>
 
 			<section className="">

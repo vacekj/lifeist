@@ -1,7 +1,7 @@
 import React from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import Home from "./Components/Home";
-import GoalsList from "./Components/GoalsList";
+import Dashboard from "./Components/Dashboard";
 import AddItem from "./Components/AddItem";
 import firebase from "firebase";
 import EditItem from "./Components/EditItem";
@@ -24,7 +24,7 @@ function App() {
 	}
 
 	return (
-		<div>
+		<div className="bg-background-primary text-white h-screen w-screen">
 			<Router>
 				<Switch>
 					<Route path={"/add"}>
@@ -34,7 +34,7 @@ function App() {
 						<EditItem />
 					</Route>
 					<Route path={"/dashboard"}>
-						<GoalsList />
+						<Dashboard />
 					</Route>
 					<Route path={"/goal/:id"}>
 						<GoalView />

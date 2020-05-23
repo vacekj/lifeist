@@ -3,8 +3,9 @@ import * as firebase from "firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { Link } from "react-router-dom";
 import Goal from "../../Types/Goal.type";
+import Modal from "../Modal";
 
-const GoalsList = () => {
+const Dashboard = () => {
 	const [error, setError] = useState<any>(null);
 	const [goals, setGoals] = useState<Goal[]>([]);
 
@@ -36,7 +37,11 @@ const GoalsList = () => {
 
 	return (
 		<>
-			<Modal onClose={() => setError(null)} showing={error !== null}>
+			<Modal
+				className={error ? "border-red-600 border-2" : ""}
+				onClose={() => setError(null)}
+				showing={error !== null}
+			>
 				There was an error loading your bucketlist.
 			</Modal>
 			<div className={"flex flex-col"}>
@@ -57,34 +62,16 @@ const GoalsList = () => {
 	);
 };
 
-function Modal(
-	props: React.ComponentProps<"div"> & {
-		showing: boolean;
-		onClose: () => any;
-	}
-) {
-	return (
-		<div
-			onClick={props.showing ? props.onClose : () => {}}
-			className={`${
-				props.showing ? "flex" : "hidden"
-			} fixed w-full h-full top-0 left-0 items-center justify-center`}
-		>
-			<div className="modal-overlay absolute w-full h-full bg-gray-900 opacity-50" />
-
-			<div className="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
-				<div className="modal-content py-4 text-left px-6">{props.children}</div>
-			</div>
-		</div>
-	);
-}
-
 function Header() {
 	return (
-		<div className="flex justify-between p-3 items-center border-b border-gray-300">
-			<h1 className={"text-2xl"}>My bucketlist</h1>
+		<div className="flex justify-between p-5 pl-6 items-center">
+			<h1 className={"text-3xl font-medium "}>My bucketlist</h1>
 			<Link to={"/add"} className={"focus:outline-none focus:bg-none"}>
-				<svg className={"text-blue-500 w-10 h-10"} fill="currentColor" viewBox="0 0 20 20">
+				<svg
+					className="text-green-primary w-10 h-10"
+					fill="currentColor"
+					viewBox="0 0 20 20"
+				>
 					<path
 						d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
 						clipRule="evenodd"
@@ -104,11 +91,14 @@ function Item(
 	}
 ) {
 	return (
-		<Link to={"/goal/" + props.uid} className="flex flex-col p-3 border-b border-gray-300">
-			<div className="text-gray-900 text-lg">{props.title}</div>
-			<div className="text-gray-600">{props.description}</div>
+		<Link
+			to={"/goal/" + props.uid}
+			className="flex flex-col p-5 mb-3 rounded bg-background-lighter"
+		>
+			<div className="text-lg font-medium">{props.title}</div>
+			<div className="text-gray-secondary">{props.description}</div>
 		</Link>
 	);
 }
 
-export default GoalsList;
+export default Dashboard;
