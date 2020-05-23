@@ -15,7 +15,7 @@ const GoalView = () => {
 
 	return !!goal && error == null ? (
 		<div>
-			<div className="flex items-center justify-between p-5 border-b border-gray-300">
+			<div className="flex items-center justify-between p-5">
 				<Link to={"/dashboard"}>
 					<svg fill="currentColor" className="w-8 h-8" viewBox="0 0 20 20">
 						<path
@@ -38,8 +38,8 @@ const GoalView = () => {
 				</button>
 			</div>
 			<div>
-				<div className="bg-gray-200 p-5 m-3">
-					<p>{goal.description}</p>
+				<div className="bg-background-lighter p-5 m-3">
+					<p className="text-gray-secondary">{goal.description}</p>
 				</div>
 			</div>
 		</div>

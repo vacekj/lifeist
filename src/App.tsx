@@ -30,7 +30,7 @@ function App() {
 					<Route path={"/add"}>
 						<AddItem />
 					</Route>
-					<Route path={"/edit"}>
+					<Route path={"/edit/:id"}>
 						<EditItem />
 					</Route>
 					<Route path={"/dashboard"}>
