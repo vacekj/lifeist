@@ -1,13 +1,18 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import * as firebase from "firebase";
 import { Link, useHistory } from "react-router-dom";
+import Goal from "../../Types/Goal.type";
 
-const AddItem = () => {
+const AddGoal = () => {
+	const formRef = useRef<HTMLFormElement>(null);
 	const history = useHistory();
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
 
 	function onSubmit() {
+		if (!formRef.current?.reportValidity()) {
+			return;
+		}
 		if (firebase.auth().currentUser?.uid) {
 			firebase
 				.firestore()
@@ -15,8 +20,10 @@ const AddItem = () => {
 				.add({
 					title,
 					description,
-					owner_uid: firebase.auth().currentUser?.uid
-				})
+					owner_uid: firebase.auth().currentUser?.uid,
+					created_at: firebase.firestore.Timestamp.now(),
+					updated_at: firebase.firestore.Timestamp.now()
+				} as Goal)
 				.then(() => {
 					history.push("/dashboard");
 				})
@@ -51,22 +58,27 @@ const AddItem = () => {
 					</svg>
 				</button>
 			</div>
+
 			{/* Form */}
 			<div>
-				<form className="flex flex-col justify-center w-full p-3">
-					<label>Title</label>
+				<form ref={formRef} className="flex flex-col justify-center w-full p-3">
+					<label className="text-gray-2 pl-1">Title</label>
 					<input
+						required={true}
+						minLength={1}
+						maxLength={200}
 						placeholder={"Parachute"}
 						value={title}
 						onChange={e => setTitle(e.target.value)}
-						className="bg-background-lighter placeholder-gray-secondary w-full mb-3 rounded h-10 p-2 "
+						className="bg-background-lighter placeholder-gray-2 w-full mb-3 rounded h-10 p-2 "
 					/>
-					<label>Description</label>
+					<label className="text-gray-2 pl-1">Description</label>
 					<textarea
+						maxLength={400}
 						placeholder={"Jump out of a plane with a parachute (or without)"}
 						value={description}
 						onChange={e => setDescription(e.target.value)}
-						className="bg-background-lighter placeholder-gray-secondary resize-none bg-gray-200 w-full rounded h-40 p-2"
+						className="bg-background-lighter placeholder-gray-2 resize-none bg-gray-200 w-full rounded h-40 p-2"
 					/>
 				</form>
 			</div>
@@ -74,4 +86,4 @@ const AddItem = () => {
 	);
 };
 
-export default AddItem;
+export default AddGoal;

@@ -1,41 +1,26 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import * as firebase from "firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { Link } from "react-router-dom";
 import Goal from "../../Types/Goal.type";
 import Modal from "../Modal";
+import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 // @ts-ignore
 import { Fade } from "react-reveal";
+import { useCollectionData } from "react-firebase-hooks/firestore";
 
 const Dashboard = () => {
 	const [error, setError] = useState<any>(null);
-	const [goals, setGoals] = useState<Goal[]>([]);
 
 	const [user, loading, authError] = useAuthState(firebase.auth());
-
-	useEffect(() => {
-		if (user) {
-			updateGoals(user);
-		}
-	}, [loading, authError]);
-
-	function updateGoals(user: firebase.User) {
+	const [goals, goalsLoading, goalsError] = useCollectionData<Goal>(
 		firebase
 			.firestore()
 			.collection("goals")
-			.where("owner_uid", "==", user.uid)
-			.get()
-			.then(goals => goals.docs)
-			.then(goals =>
-				goals.map(g => {
-					return { ...(g.data() as Goal), uid: g.id };
-				})
-			)
-			.then(goals => setGoals(goals))
-			.catch(e => {
-				setError(true);
-			});
-	}
+			.orderBy("created_at", "desc")
+			.where("owner_uid", "==", user?.uid ?? ""),
+		{ idField: "uid" }
+	);
 
 	return (
 		<>
@@ -48,12 +33,44 @@ const Dashboard = () => {
 			</Modal>
 			<div className={"flex flex-col"}>
 				<Header />
+
 				<div className="p-3">
-					{goals.length > 0 ? (
+					{/*Loading */}
+					{loading &&
+						Array(5)
+							.fill(0)
+							.map(() => (
+								<Fade>
+									<SkeletonTheme color={"#232323"} highlightColor={"#444444"}>
+										<div className="mb-3">
+											<Skeleton height={24} />
+											<Skeleton height={50} />
+										</div>
+									</SkeletonTheme>
+								</Fade>
+							))}
+
+					{/*Goals*/}
+					{goals &&
+						goals?.length > 0 &&
 						goals.map((g, i) => {
-							return <Item key={i} {...g} />;
-						})
-					) : (
+							return (
+								<Item
+									variant={
+										g.completed
+											? "completed"
+											: g.archived
+											? "archived"
+											: "normal"
+									}
+									key={i}
+									{...g}
+								/>
+							);
+						})}
+
+					{/* No Goals*/}
+					{goals && goals.length === 0 && (
 						<div className="flex items-center justify-center text-xl text-gray-700">
 							Add a goal by tapping the Plus icon
 						</div>
@@ -86,23 +103,62 @@ function Header() {
 }
 
 function Item(
-	props: React.ComponentProps<"div"> & {
-		title: string;
-		description: string;
-		uid: string;
-	}
+	props: React.ComponentProps<"div"> & Goal & { variant?: "normal" | "completed" | "archived" }
 ) {
-	return (
-		<Fade>
-			<Link
-				to={"/goal/" + props.uid}
-				className="hover:bg-background-lightest flex flex-col p-5 mb-3 rounded bg-background-lighter"
-			>
-				<div className="text-lg font-medium">{props.title}</div>
-				<div className="text-gray-secondary">{props.description}</div>
-			</Link>
-		</Fade>
-	);
+	let elem: JSX.Element | undefined = undefined;
+	switch (props.variant) {
+		case "normal":
+			elem = (
+				<Link
+					to={"/goal/" + props.uid}
+					className={`hover:bg-background-lightest bg-background-lighter
+				flex flex-col p-5 mb-3 rounded bg-background-lighter`}
+				>
+					<div className="text-lg font-medium">{props.title}</div>
+					<div className={"text-gray-2"}>{props.description}</div>
+				</Link>
+			);
+			break;
+
+		case "completed":
+			elem = (
+				<Link
+					to={"/goal/" + props.uid}
+					className="hover:bg-green-primary bg-green-primary text-black flex flex-col p-5 mb-3 rounded bg-background-lighter"
+				>
+					<div className="text-lg font-medium">{props.title}</div>
+					<div>{props.description}</div>
+				</Link>
+			);
+			break;
+
+		case "archived":
+			elem = (
+				<Link
+					to={"/goal/" + props.uid}
+					className="flex flex-col p-5 mb-3 rounded border border-background-lightest hover:border-gray-800"
+				>
+					<div className="text-lg text-gray-2 font-medium">{props.title}</div>
+					<div className={"text-gray-2"}>{props.description}</div>
+				</Link>
+			);
+			break;
+
+		default:
+			elem = (
+				<Link
+					to={"/goal/" + props.uid}
+					className={`hover:bg-background-lightest bg-background-lighter
+				flex flex-col p-5 mb-3 rounded bg-background-lighter`}
+				>
+					<div className="text-lg font-medium">{props.title}</div>
+					<div className={"text-gray-2"}>{props.description}</div>
+				</Link>
+			);
+			break;
+	}
+
+	return <Fade>{elem}</Fade>;
 }
 
 export default Dashboard;

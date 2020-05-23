@@ -2,10 +2,10 @@ import React from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 import Home from "./Components/Home";
 import Dashboard from "./Components/Dashboard";
-import AddItem from "./Components/AddItem";
+import AddGoal from "./Components/AddGoal";
 import firebase from "firebase";
-import EditItem from "./Components/EditItem";
-import GoalView from "./Components/GoalView";
+import EditGoal from "./Components/EditGoal";
+import GoalDetail from "./Components/GoalDetail";
 import "./App.css";
 
 function App() {
@@ -25,20 +25,20 @@ function App() {
 	}
 
 	return (
-		<div className="bg-background-primary text-white h-screen w-screen">
+		<div className="bg-background-primary text-white">
 			<Router>
 				<Switch>
 					<Route path={"/add"}>
-						<AddItem />
+						<AddGoal />
 					</Route>
 					<Route path={"/edit/:id"}>
-						<EditItem />
+						<EditGoal />
 					</Route>
 					<Route path={"/dashboard"}>
 						<Dashboard />
 					</Route>
 					<Route path={"/goal/:id"}>
-						<GoalView />
+						<GoalDetail />
 					</Route>
 					<Route path={"/"}>
 						<Home />
