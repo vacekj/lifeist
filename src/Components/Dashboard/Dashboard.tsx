@@ -43,8 +43,7 @@ const Dashboard = () => {
 								<Fade>
 									<SkeletonTheme color={"#232323"} highlightColor={"#444444"}>
 										<div className="mb-3">
-											<Skeleton height={24} />
-											<Skeleton height={50} />
+											<Skeleton height={74} />
 										</div>
 									</SkeletonTheme>
 								</Fade>
@@ -73,7 +72,7 @@ const Dashboard = () => {
 
 					{/* No Goals*/}
 					{goals && goals.length === 0 && (
-						<div className="flex items-center justify-center text-xl text-gray-700">
+						<div className="flex items-center justify-center text-xl text-gray-3">
 							Add a goal by tapping the Plus icon
 						</div>
 					)}

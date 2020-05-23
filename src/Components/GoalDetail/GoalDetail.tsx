@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useHistory, useParams } from "react-router-dom";
 import { useDocument, useDocumentData } from "react-firebase-hooks/firestore";
 import firebase from "firebase";
@@ -66,7 +66,7 @@ const GoalDetail = () => {
 						<h1 className="text-3xl font-medium">{goalData.title}</h1>
 						<p
 							className={
-								"text-gray-2 text-lg " +
+								"text-gray-2 text-lg overflow-hidden " +
 								(!goalData.description.length ? "italic text-gray-3" : "")
 							}
 						>
@@ -75,7 +75,7 @@ const GoalDetail = () => {
 						<div className="w-full my-3">
 							<Button
 								className={
-									"mb-3 " +
+									"mb-3 w-full " +
 									(goalData.completed
 										? "bg-green-1 hover:bg-green-1 text-black"
 										: "text-green-1")
@@ -115,13 +115,13 @@ const GoalDetail = () => {
 							</Button>
 
 							<div className="flex">
-								<Button className="" onClick={toggleArchiveGoal}>
+								<Button className="w-full" onClick={toggleArchiveGoal}>
 									<span className="text-xl text-gray-2">
 										{goalData.archived ? "Unarchive" : "Archive"}
 									</span>
 									{goalData.archived ? (
 										<svg
-											className="w-8 h-8 text-gray-2"
+											className="w-8 h-8 ml-1 text-gray-2"
 											fill="none"
 											strokeLinecap="round"
 											strokeLinejoin="round"
@@ -135,7 +135,7 @@ const GoalDetail = () => {
 										<svg
 											fill="currentColor"
 											viewBox="0 0 20 20"
-											className="w-8 h-8 text-gray-2"
+											className="w-8 h-8 ml-1 text-gray-2"
 										>
 											<path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
 											<path
@@ -146,8 +146,9 @@ const GoalDetail = () => {
 										</svg>
 									)}
 								</Button>
+
 								<Button
-									className="ml-3"
+									className="ml-3 w-full"
 									onClick={() => history.push("/edit/" + id)}
 								>
 									<span className="text-xl text-gray-100">Edit</span>
@@ -160,6 +161,13 @@ const GoalDetail = () => {
 									</svg>
 								</Button>
 							</div>
+							<DeleteButton
+								onDelete={() => {
+									goal?.ref.delete().then(() => {
+										history.push("/dashboard");
+									});
+								}}
+							/>
 						</div>
 					</>
 				)}
@@ -168,12 +176,38 @@ const GoalDetail = () => {
 	);
 };
 
-function Button(props: React.ComponentProps<"button">) {
+function DeleteButton(props: { onDelete: () => any }) {
+	const [confirmShown, setConfirmShown] = useState(false);
+
+	return (
+		<Button
+			className="w-full text-red-700 mt-3"
+			onClick={() => {
+				if (confirmShown) {
+					props.onDelete();
+				} else {
+					setConfirmShown(true);
+				}
+			}}
+		>
+			<span className="text-xl">{confirmShown ? "Are you sure?" : "Delete"}</span>
+			<svg className="w-8 h-8 ml-1 text-red-700" fill="currentColor" viewBox="0 0 20 20">
+				<path
+					d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+					clipRule="evenodd"
+					fillRule="evenodd"
+				/>
+			</svg>
+		</Button>
+	);
+}
+
+export function Button(props: React.ComponentProps<"button">) {
 	return (
 		<button
 			{...props}
 			className={
-				"py-6 font-medium w-full flex justify-center items-center rounded bg-background-lighter hover:bg-background-lightest " +
+				"py-6 font-medium flex justify-center items-center rounded bg-background-lighter hover:bg-background-lightest " +
 				(props.className ?? "")
 			}
 		>
