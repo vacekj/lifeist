@@ -4,6 +4,8 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { Link } from "react-router-dom";
 import Goal from "../../Types/Goal.type";
 import Modal from "../Modal";
+// @ts-ignore
+import { Fade } from "react-reveal";
 
 const Dashboard = () => {
 	const [error, setError] = useState<any>(null);
@@ -91,13 +93,15 @@ function Item(
 	}
 ) {
 	return (
-		<Link
-			to={"/goal/" + props.uid}
-			className="flex flex-col p-5 mb-3 rounded bg-background-lighter"
-		>
-			<div className="text-lg font-medium">{props.title}</div>
-			<div className="text-gray-secondary">{props.description}</div>
-		</Link>
+		<Fade>
+			<Link
+				to={"/goal/" + props.uid}
+				className="hover:bg-background-lightest flex flex-col p-5 mb-3 rounded bg-background-lighter"
+			>
+				<div className="text-lg font-medium">{props.title}</div>
+				<div className="text-gray-secondary">{props.description}</div>
+			</Link>
+		</Fade>
 	);
 }
 

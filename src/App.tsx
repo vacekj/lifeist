@@ -6,6 +6,7 @@ import AddItem from "./Components/AddItem";
 import firebase from "firebase";
 import EditItem from "./Components/EditItem";
 import GoalView from "./Components/GoalView";
+import "./App.css";
 
 function App() {
 	const firebaseConfig = {

@@ -26,8 +26,12 @@ const Home = () => {
 			<div>{"LOG IN YOU FUCKER"}</div>
 			<section>
 				<button
+					className="bg-green-200 p-10"
 					onClick={() => {
-						firebase.auth().signInWithRedirect(googleProvider);
+						firebase
+							.auth()
+							.signInWithRedirect(googleProvider)
+							.catch(e => alert(e));
 					}}
 				>
 					AUTHENTICATE!!!
