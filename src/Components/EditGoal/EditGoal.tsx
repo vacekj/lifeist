@@ -1,7 +1,7 @@
 import React from "react";
 import { useParams } from "react-router-dom";
 
-const EditItem = () => {
+const EditGoal = () => {
 	let { id } = useParams();
 
 	return (
@@ -45,4 +45,4 @@ const EditItem = () => {
 	);
 };
 
-export default EditItem;
+export default EditGoal;
