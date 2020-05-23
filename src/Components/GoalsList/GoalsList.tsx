@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
 import * as firebase from "firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
+import { Link } from "react-router-dom";
+import Goal from "../../Types/Goal.type";
 
 const GoalsList = () => {
 	const [error, setError] = useState<any>(null);
-	const [goals, setGoals] = useState<any[]>([]);
+	const [goals, setGoals] = useState<Goal[]>([]);
 
 	const [user, loading, authError] = useAuthState(firebase.auth());
 
@@ -21,7 +23,11 @@ const GoalsList = () => {
 			.where("owner_uid", "==", user.uid)
 			.get()
 			.then(goals => goals.docs)
-			.then(goals => goals.map(g => g.data()))
+			.then(goals =>
+				goals.map(g => {
+					return { ...(g.data() as Goal), uid: g.id };
+				})
+			)
 			.then(goals => setGoals(goals))
 			.catch(e => {
 				setError(true);
@@ -59,16 +65,14 @@ function Modal(
 ) {
 	return (
 		<div
-			onClick={props.showing ? props.onClose : () => {
-			}}
+			onClick={props.showing ? props.onClose : () => {}}
 			className={`${
-				props.showing ? "" : "opacity-0"
-			} fixed w-full h-full top-0 left-0 flex items-center justify-center`}
+				props.showing ? "flex" : "hidden"
+			} fixed w-full h-full top-0 left-0 items-center justify-center`}
 		>
 			<div className="modal-overlay absolute w-full h-full bg-gray-900 opacity-50" />
 
-			<div
-				className="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
+			<div className="modal-container bg-white w-11/12 md:max-w-md mx-auto rounded shadow-lg z-50 overflow-y-auto">
 				<div className="modal-content py-4 text-left px-6">{props.children}</div>
 			</div>
 		</div>
@@ -79,7 +83,7 @@ function Header() {
 	return (
 		<div className="flex justify-between p-3 items-center border-b border-gray-300">
 			<h1 className={"text-2xl"}>My bucketlist</h1>
-			<button className={"focus:outline-none focus:bg-none"}>
+			<Link to={"/add"} className={"focus:outline-none focus:bg-none"}>
 				<svg className={"text-blue-500 w-10 h-10"} fill="currentColor" viewBox="0 0 20 20">
 					<path
 						d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
@@ -87,7 +91,7 @@ function Header() {
 						fillRule="evenodd"
 					/>
 				</svg>
-			</button>
+			</Link>
 		</div>
 	);
 }
@@ -96,13 +100,14 @@ function Item(
 	props: React.ComponentProps<"div"> & {
 		title: string;
 		description: string;
+		uid: string;
 	}
 ) {
 	return (
-		<div className="flex flex-col p-3 border-b border-gray-300">
+		<Link to={"/goal/" + props.uid} className="flex flex-col p-3 border-b border-gray-300">
 			<div className="text-gray-900 text-lg">{props.title}</div>
 			<div className="text-gray-600">{props.description}</div>
-		</div>
+		</Link>
 	);
 }
 

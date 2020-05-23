@@ -36,7 +36,7 @@ function App() {
 					<Route path={"/dashboard"}>
 						<GoalsList />
 					</Route>
-					<Route path={"/goal"}>
+					<Route path={"/goal/:id"}>
 						<GoalView />
 					</Route>
 					<Route path={"/"}>
