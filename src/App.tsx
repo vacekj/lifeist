@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
+import { BrowserRouter as Router, Redirect, Route, Switch } from "react-router-dom";
 import Home from "./Components/Home";
 import Dashboard from "./Components/Dashboard";
 import AddGoal from "./Components/AddGoal";
@@ -9,6 +9,7 @@ import EditGoal from "./Components/EditGoal";
 import GoalDetail from "./Components/GoalDetail";
 import "./App.css";
 import Profile from "./Components/Profile";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 function App() {
 	const firebaseConfig = {
@@ -24,13 +25,16 @@ function App() {
 
 	if (!firebase.apps.length) {
 		firebase.initializeApp(firebaseConfig);
-		const perf = firebase.performance();
+		firebase.performance();
 		firebase.analytics();
 	}
+
+	const [auth, loading, error] = useAuthState(firebase.auth());
 
 	return (
 		<div className="bg-background-primary text-white md:max-w-4xl md:m-auto">
 			<Router>
+				{!auth && !loading && window.location.pathname != "/" && <Redirect to={"/"} />}
 				<Switch>
 					<Route path={"/add"} children={<AddGoal />} />
 					<Route path={"/edit/:id"} children={<EditGoal />} />
