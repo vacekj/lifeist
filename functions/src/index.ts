@@ -1,31 +1,24 @@
 import * as firebase from "firebase";
-import * as express from "express";
-
 import * as admin from "firebase-admin";
-
-const functions = require("firebase-functions");
+import * as functions from "firebase-functions";
+// @ts-ignore
 admin.initializeApp();
 
-export const getStats = functions.https.onRequest(
-	async (_: Request, response: express.Response) => {
-		try {
-			const snapshot = await admin
-				.firestore()
-				.collection("goals")
-				.get();
-			const data = snapshot.docs.map(g => g.data() as Goal);
+export const getStats = functions.region("europe-west1").https.onRequest(async (_, response) => {
+	const goals = await getAllGoals(response);
+});
 
-			/*Pick only anonymous data*/
-			return response.json(
-				data.map(goal => {
-					return { title: goal.title, completed: goal.completed };
-				})
-			);
-		} catch (e) {
-			return response.json(e);
-		}
-	}
-);
+async function getAllGoals(response: functions.Response) {
+	const snapshot = await admin
+		.firestore()
+		.collection("goals")
+		.get();
+	const data = snapshot.docs.map(g => g.data() as Goal);
+
+	return data.map(goal => {
+		return { title: goal.title, completed: goal.completed };
+	});
+}
 
 type Goal = {
 	uid: string;
