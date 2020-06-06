@@ -61,9 +61,19 @@ const AddGoal = () => {
 
 			{/* Form */}
 			<div>
-				<form ref={formRef} className="flex flex-col justify-center w-full p-3">
-					<label className="text-gray-2 pl-1">Title</label>
+				<form
+					onSubmit={e => {
+						e.preventDefault();
+						onSubmit();
+					}}
+					ref={formRef}
+					className="flex flex-col justify-center w-full p-3"
+				>
+					<label className="text-gray-2 pl-1" htmlFor="title">
+						Title
+					</label>
 					<input
+						id="title"
 						required={true}
 						minLength={1}
 						maxLength={200}
@@ -72,8 +82,11 @@ const AddGoal = () => {
 						onChange={e => setTitle(e.target.value)}
 						className="bg-background-lighter placeholder-gray-2 w-full mb-3 rounded h-10 p-2 "
 					/>
-					<label className="text-gray-2 pl-1">Description</label>
+					<label className="text-gray-2 pl-1" htmlFor="description">
+						Description
+					</label>
 					<textarea
+						id="description"
 						maxLength={400}
 						placeholder={"Jump out of a plane with a parachute (or without)"}
 						value={description}

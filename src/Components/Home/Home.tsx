@@ -1,13 +1,19 @@
 import React, { useState } from "react";
 import * as firebase from "firebase";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import { Button } from "../GoalDetail/GoalDetail";
 import { useAuthState } from "react-firebase-hooks/auth";
 import ScaleLoader from "react-spinners/ScaleLoader";
 import quotes from "../../quotes";
 
+function useQuery() {
+	return new URLSearchParams(useLocation().search);
+}
+
 const Home = () => {
 	const history = useHistory();
+	const query = useQuery();
+	const showTestEmailLogin = query.get("testEmailLogin");
 
 	const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
 	const [quote] = useState(randomQuote);
@@ -27,7 +33,7 @@ const Home = () => {
 	return (
 		<main className="w-full flex flex-col">
 			<nav className="mb-3 p-5 pl-6 text-center ">
-				<h1 className="text-5xl font-medium ">BucketList</h1>
+				<h1 className="text-5xl font-medium ">Lifeist</h1>
 				<h3 className="text-gray-2 italic tracking-wider">where dreams come true</h3>
 			</nav>
 
@@ -40,6 +46,28 @@ const Home = () => {
 					<ScaleLoader color={"#00db6a"} />
 				) : (
 					<>
+						{/*Test Email*/}
+						{showTestEmailLogin && (
+							<form
+								onSubmit={e => {
+									e.preventDefault();
+									const data = new FormData(e.currentTarget);
+									firebase
+										.auth()
+										.signInWithEmailAndPassword(
+											data.get("email") as string,
+											data.get("password") as string
+										)
+										.then(r => console.log(r))
+										.catch(r => console.error(r));
+								}}
+							>
+								<input className="bg-black" type="text" name="email" />
+								<input className="bg-black" type="password" name="password" />
+								<input type={"submit"} value={"Login with test account"} />
+							</form>
+						)}
+						{/*Google*/}
 						<Button
 							className="w-64 flex items-center justify-center rounded bg-background-lighter px-6 py-4 text-xl"
 							onClick={() => {

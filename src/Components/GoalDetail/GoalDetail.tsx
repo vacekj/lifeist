@@ -1,19 +1,26 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useHistory, useParams } from "react-router-dom";
 import { useDocument, useDocumentData } from "react-firebase-hooks/firestore";
 import firebase from "firebase";
 import Goal from "../../Types/Goal.type";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import { AnimatePresence, motion } from "framer-motion";
 
 const GoalDetail = () => {
 	let { id } = useParams();
 	const history = useHistory();
+
+	const functions = firebase.app().functions("europe-west1");
 
 	function toggleCompleteGoal() {
 		goal?.ref.update({
 			completed_on: firebase.firestore.Timestamp.now(),
 			completed: !goalData?.completed
 		} as Partial<Goal>);
+
+		if ("vibrate" in window.navigator) {
+			window.navigator.vibrate(300);
+		}
 	}
 
 	function toggleArchiveGoal() {
@@ -22,19 +29,46 @@ const GoalDetail = () => {
 		} as Partial<Goal>);
 	}
 
-	const [goal, loading, error] = useDocument(
+	const [goal, loading] = useDocument(
 		firebase
 			.firestore()
 			.collection("goals")
 			.doc(id)
 	);
 
-	const [goalData, dataLoading, dataError] = useDocumentData<Goal>(
+	const [goalData] = useDocumentData<Goal>(
 		firebase
 			.firestore()
 			.collection("goals")
 			.doc(id)
 	);
+
+	const [sharedWithUsers, setSharedWithUsers] = useState<
+		{
+			email: string;
+			photoUrl: string;
+			displayName: string;
+			uid: string;
+		}[]
+	>([]);
+	useEffect(() => {
+		if (goalData?.shared_with?.length) {
+			const userPromises = goalData?.shared_with?.map(uid => {
+				return functions.httpsCallable("getUserByUid")({ uid });
+			});
+
+			Promise.all(userPromises)
+				// @ts-ignore
+				.then(users => users.map(user => user.data))
+				.then(users => setSharedWithUsers((users as unknown) as any));
+		}
+	}, [goalData?.shared_with]);
+
+	function addPersonToGoal(uid: string) {
+		goal?.ref.update({
+			shared_with: [...(goalData?.shared_with ?? []), uid]
+		} as Partial<Goal>);
+	}
 
 	return (
 		<div>
@@ -72,6 +106,8 @@ const GoalDetail = () => {
 						>
 							{goalData.description.length ? goalData.description : "No description"}
 						</p>
+						<ShareSection onAdd={addPersonToGoal} sharedWithUsers={sharedWithUsers} />
+
 						<div className="w-full my-3">
 							<Button
 								className={
@@ -175,6 +211,130 @@ const GoalDetail = () => {
 		</div>
 	);
 };
+
+function UserPill(props: { name: string; photoUrl: string }) {
+	return (
+		<motion.p className="mr-2 flex flex-row items-center p-3 rounded-full bg-background-lighter">
+			<span>{props.name}</span>
+			<img
+				alt={props.name + " profile picture"}
+				src={props.photoUrl}
+				className="h-6 w-6 rounded-full ml-1 border border-white"
+			/>
+		</motion.p>
+	);
+}
+
+function ShareSection(props: { onAdd: (uid: string) => any; sharedWithUsers: any[] }) {
+	const [peoplePickerOpen, setPeoplePickerOpen] = useState(false);
+	const [email, setEmail] = useState("");
+	const [emailValid, setEmailValid] = useState(false);
+	const [foundUser, setFoundUser] = useState<
+		| undefined
+		| {
+				email: string;
+				photoUrl: string;
+				displayName: string;
+				uid: string;
+		  }
+	>(undefined);
+
+	const functions = firebase.app().functions("europe-west1");
+
+	return (
+		<>
+			{props.sharedWithUsers && (
+				<>
+					<div className="mt-5 mb-2">Shared with:</div>
+					<div className="flex items-center mb-5">
+						{props.sharedWithUsers.map(user => (
+							<UserPill name={user.displayName} photoUrl={user.photoUrl} />
+						))}
+						<button
+							className="p-3 rounded-full bg-background-lighter"
+							onClick={() => setPeoplePickerOpen(true)}
+						>
+							<svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
+								<path
+									fillRule="evenodd"
+									d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
+									clipRule="evenodd"
+								/>
+							</svg>
+						</button>
+					</div>
+				</>
+			)}
+
+			<AnimatePresence>
+				{peoplePickerOpen && (
+					<motion.div
+						animate={{
+							paddingTop: 20,
+							paddingBottom: 20
+						}}
+						exit={{ paddingTop: 0, paddingBottom: 0, height: 0, overflow: "hidden" }}
+						className="mt-3 px-4 font-medium flex
+							 items-center justify-between rounded bg-background-lighter hover:bg-background-lightest "
+					>
+						<input
+							className="bg-background-lighter text-white outline-none hover:bg-background-lightest"
+							type="text"
+							value={email}
+							onChange={e => {
+								const email = e.target.value;
+								setEmail(email);
+								functions
+									.httpsCallable("getUserByEmail")({ email })
+									.then(r => {
+										if (r.data.email === email) {
+											setFoundUser(r.data);
+											setEmailValid(true);
+										} else {
+											setFoundUser(undefined);
+											setEmailValid(false);
+										}
+									})
+									.catch(e => console.error(e));
+							}}
+						/>
+						{foundUser && (
+							<div className="flex items-center">
+								<span>{foundUser.displayName}</span>
+								<img
+									alt={foundUser.displayName + " profile picture"}
+									src={foundUser.photoUrl}
+									className="h-8 w-8 rounded-full ml-1 border border-white"
+								/>
+							</div>
+						)}
+						<button
+							onClick={() => {
+								if (foundUser) {
+									props.onAdd(foundUser.uid);
+								}
+							}}
+						>
+							<svg
+								className={`h-8 w-8 ${
+									emailValid ? "text-white" : "text-background-lightest"
+								}`}
+								fill="none"
+								strokeLinecap="round"
+								strokeLinejoin="round"
+								strokeWidth="2"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+							>
+								<path d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+							</svg>
+						</button>
+					</motion.div>
+				)}
+			</AnimatePresence>
+		</>
+	);
+}
 
 function DeleteButton(props: { onDelete: () => any }) {
 	const [confirmShown, setConfirmShown] = useState(false);
