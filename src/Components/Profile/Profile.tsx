@@ -6,7 +6,7 @@ import { formatDistance } from "date-fns";
 import { Button } from "../GoalDetail/GoalDetail";
 
 const Profile = () => {
-	const [user, loading, error] = useAuthState(firebase.auth());
+	const [user] = useAuthState(firebase.auth());
 	const history = useHistory();
 	const getTimeSinceRegister = (user: firebase.User) => {
 		if (user.metadata.creationTime) {
@@ -58,7 +58,7 @@ const Profile = () => {
 					<img
 						className="mb-3 w-24 h-24 rounded-full border-background-lightest border-2"
 						src={user?.photoURL}
-						alt="Profile Picture"
+						alt="Profile"
 					/>
 				)}
 				<div className="text-3xl">{user?.displayName ?? user?.email}</div>

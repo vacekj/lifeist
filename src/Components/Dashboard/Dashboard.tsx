@@ -12,13 +12,21 @@ import { useCollectionData } from "react-firebase-hooks/firestore";
 const Dashboard = () => {
 	const [error, setError] = useState<any>(null);
 
-	const [user, loading, authError] = useAuthState(firebase.auth());
-	const [goals, goalsLoading, goalsError] = useCollectionData<Goal>(
+	const [user, loading] = useAuthState(firebase.auth());
+	const [goals] = useCollectionData<Goal>(
 		firebase
 			.firestore()
 			.collection("goals")
 			.orderBy("created_at", "desc")
 			.where("owner_uid", "==", user?.uid ?? ""),
+		{ idField: "uid" }
+	);
+
+	const [sharedGoals] = useCollectionData<Goal>(
+		firebase
+			.firestore()
+			.collection("goals")
+			.where("shared_with", "array-contains", user?.uid ?? "invalid"),
 		{ idField: "uid" }
 	);
 
@@ -39,8 +47,8 @@ const Dashboard = () => {
 					{loading &&
 						Array(5)
 							.fill(0)
-							.map(() => (
-								<Fade>
+							.map((_, i) => (
+								<Fade key={i}>
 									<SkeletonTheme color={"#232323"} highlightColor={"#444444"}>
 										<div className="mb-3">
 											<Skeleton height={74} />
@@ -49,12 +57,44 @@ const Dashboard = () => {
 								</Fade>
 							))}
 
+					{/*Shared goals*/}
+					{sharedGoals?.length !== undefined && sharedGoals.length > 0 && (
+						<div className="flex items-center justify-center text-sm text-gray-3 my-3 mt-5">
+							Shared Goals
+						</div>
+					)}
+
+					{sharedGoals &&
+						sharedGoals.map((g, i) => {
+							return (
+								<Fade cascade top duration={500} key={i}>
+									<Item
+										variant={
+											g.completed
+												? "completed"
+												: g.archived
+												? "archived"
+												: "normal"
+										}
+										key={i}
+										{...g}
+									/>
+								</Fade>
+							);
+						})}
+
 					{/*Goals*/}
+					{goals?.length !== undefined && goals.length > 0 && (
+						<div className="flex items-center justify-center text-sm text-gray-3 my-3 mt-5">
+							Your Goals
+						</div>
+					)}
+
 					{goals &&
 						goals?.length > 0 &&
 						goals.map((g, i) => {
 							return (
-								<Fade cascade top duration={500}>
+								<Fade cascade top duration={500} key={i}>
 									<Item
 										variant={
 											g.completed

@@ -9,7 +9,7 @@ const AddGoal = () => {
 	const { id } = useParams();
 	const formRef = useRef<HTMLFormElement>(null);
 	const history = useHistory();
-	const [goal, loading, error] = useDocument(
+	const [goal, loading] = useDocument(
 		firebase
 			.firestore()
 			.collection("goals")
@@ -22,7 +22,7 @@ const AddGoal = () => {
 	useEffect(() => {
 		setTitle(goal?.data()?.title);
 		setDescription(goal?.data()?.description);
-	}, [loading]);
+	}, [loading, goal]);
 
 	function onSubmit() {
 		if (!formRef.current?.reportValidity()) {

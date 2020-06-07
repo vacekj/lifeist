@@ -18,7 +18,7 @@ const Home = () => {
 	const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
 	const [quote] = useState(randomQuote);
 
-	const [user, loading, error] = useAuthState(firebase.auth());
+	const [, loading] = useAuthState(firebase.auth());
 
 	firebase.auth().onAuthStateChanged(user => {
 		if (user) {

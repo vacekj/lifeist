@@ -29,12 +29,12 @@ function App() {
 		firebase.analytics();
 	}
 
-	const [auth, loading, error] = useAuthState(firebase.auth());
+	const [auth, loading] = useAuthState(firebase.auth());
 
 	return (
 		<div className="bg-background-primary text-white md:max-w-4xl md:m-auto">
 			<Router>
-				{!auth && !loading && window.location.pathname != "/" && <Redirect to={"/"} />}
+				{!auth && !loading && window.location.pathname !== "/" && <Redirect to={"/"} />}
 				<Switch>
 					<Route path={"/add"} children={<AddGoal />} />
 					<Route path={"/edit/:id"} children={<EditGoal />} />
