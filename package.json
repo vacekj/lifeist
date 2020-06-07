@@ -16,6 +16,7 @@
     "framer-motion": "^1.11.0",
     "postcss-cli": "^7.1.0",
     "react": "^16.13.1",
+    "react-click-away-listener": "^1.1.0",
     "react-dom": "^16.13.1",
     "react-firebase-hooks": "^2.1.1",
     "react-loading-skeleton": "^2.0.1",

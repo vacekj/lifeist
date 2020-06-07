@@ -89,7 +89,6 @@ const GoalDetail = () => {
 
 	const [auth] = useAuthState(firebase.auth());
 
-	// @ts-ignore
 	return (
 		<div>
 			<div className="flex items-center justify-between p-5">
@@ -137,11 +136,13 @@ const GoalDetail = () => {
 							</p>
 						)}
 
-						<ShareSection
-							onAdd={addPersonToGoal}
-							sharedWithUsers={sharedWithUsers}
-							hideAddButton={goalData.owner_uid !== auth?.uid}
-						/>
+						{sharedWithUsers.length > 0 && (
+							<ShareSection
+								onAdd={addPersonToGoal}
+								sharedWithUsers={sharedWithUsers}
+								hideAddButton={goalData.owner_uid !== auth?.uid}
+							/>
+						)}
 
 						{goalData.owner_uid === auth?.uid && (
 							<div className="w-full my-3">
@@ -251,7 +252,7 @@ const GoalDetail = () => {
 
 function UserPill(props: { name: string; photoUrl: string }) {
 	return (
-		<motion.p className="mr-2 inline-flex flex-row items-center p-3 rounded-full bg-background-lighter mb-2">
+		<motion.p className="mr-2 mb-2 inline-flex flex-row items-center p-3 rounded-full bg-background-lighter mb-2">
 			<span>{props.name}</span>
 			{props.photoUrl ? (
 				<img
@@ -283,7 +284,6 @@ function ShareSection(props: {
 }) {
 	const [peoplePickerOpen, setPeoplePickerOpen] = useState(false);
 	const [email, setEmail] = useState("");
-	const [emailValid, setEmailValid] = useState(false);
 	const [foundUser, setFoundUser] = useState<
 		| undefined
 		| {
@@ -296,114 +296,129 @@ function ShareSection(props: {
 
 	const functions = firebase.app().functions("europe-west1");
 
+	function onPickerChange(e: React.ChangeEvent<HTMLInputElement>) {
+		const email = e.target.value;
+		setEmail(email);
+		const regex = new RegExp(
+			"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\\])"
+		);
+		if (!email.match(regex)) {
+			return;
+		}
+		if (props.sharedWithUsers.map(user => user.email).includes(email)) {
+			return;
+		}
+		functions
+			.httpsCallable("getUserByEmail")({ email })
+			.then(r => {
+				if (r.data.email === email) {
+					setFoundUser(r.data);
+				}
+			})
+			.catch(e => console.error(e));
+	}
+
 	return (
 		<>
 			{props.sharedWithUsers && (
 				<>
 					<div className="mt-5 mb-2">Shared with:</div>
-					<div className="flex items-center mb-5  flex-wrap">
-						{props.sharedWithUsers.map(user => (
-							<UserPill name={user.displayName} photoUrl={user.photoUrl} />
-						))}
+					<div className="flex flex-col mb-5 items-start">
+						<div className="flex items-center flex-wrap w-full">
+							{props.sharedWithUsers.map(user => (
+								<UserPill name={user.displayName} photoUrl={user.photoUrl} />
+							))}
 
-						{!props.hideAddButton && (
-							<button
-								className="p-3 rounded-full bg-background-lighter outline-none"
-								onClick={() => setPeoplePickerOpen(!peoplePickerOpen)}
-							>
-								<svg className="h-6 w-6" fill="currentColor" viewBox="0 0 20 20">
-									<path
-										fillRule="evenodd"
-										d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-										clipRule="evenodd"
-									/>
-								</svg>
-							</button>
-						)}
+							<div className="flex items-center w-full">
+								<AnimatePresence>
+									{peoplePickerOpen && (
+										<motion.div
+											className="overflow-hidden pr-2"
+											initial={{ width: 0 }}
+											animate={{ width: "100%" }}
+											exit={{ width: 0 }}
+										>
+											<motion.input
+												className="w-full mb-2 inline-flex flex-row items-center p-3 rounded
+										 bg-background-lighter text-white outline-none hover:bg-background-lightest"
+												type="text"
+												value={email}
+												onChange={onPickerChange}
+											/>
+										</motion.div>
+									)}
+								</AnimatePresence>
+
+								{!props.hideAddButton && (
+									<button
+										className="p-3 mb-2 flex items-center rounded bg-background-lighter outline-none"
+										onClick={() => setPeoplePickerOpen(!peoplePickerOpen)}
+									>
+										{peoplePickerOpen ? "Cancel" : "Invite"}
+									</button>
+								)}
+							</div>
+						</div>
+
+						<AnimatePresence>
+							{peoplePickerOpen && foundUser && (
+								<motion.div
+									initial={{ height: 0 }}
+									animate={{ height: "auto" }}
+									exit={{ height: 0 }}
+									className="w-full flex justify-between items-center p-3 rounded bg-background-lighter
+								 text-white outline-none hover:bg-background-lightest overflow-hidden"
+								>
+									<div className="flex items-center">
+										{foundUser.photoUrl ? (
+											<img
+												alt={foundUser.displayName + " profile picture"}
+												src={foundUser.photoUrl}
+												className="inline h-6 w-6 rounded-full mr-1 border border-white"
+											/>
+										) : (
+											<svg
+												className="inline text-gray-3 w-6 h-6 rounded-full mr-1 border border-white"
+												fill="currentColor"
+												viewBox="0 0 20 20"
+											>
+												<path
+													d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+													clipRule="evenodd"
+													fillRule="evenodd"
+												/>
+											</svg>
+										)}
+
+										<span>{foundUser.displayName}</span>
+									</div>
+
+									<button
+										onClick={() => {
+											if (foundUser) {
+												props.onAdd(foundUser.uid);
+											}
+										}}
+										className=""
+									>
+										<svg
+											className="h-8 w-8 ml-1"
+											fill="currentColor"
+											viewBox="0 0 20 20"
+										>
+											<path
+												fillRule="evenodd"
+												d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+												clipRule="evenodd"
+											/>
+										</svg>
+									</button>
+								</motion.div>
+							)}
+						</AnimatePresence>
 					</div>
 				</>
 			)}
-
-			<AnimatePresence>
-				{peoplePickerOpen && (
-					<motion.div
-						animate={{
-							paddingTop: 20,
-							paddingBottom: 20
-						}}
-						exit={{ paddingTop: 0, paddingBottom: 0, height: 0, overflow: "hidden" }}
-						className="mt-3 px-4 font-medium flex
-							 items-center justify-between rounded bg-background-lighter hover:bg-background-lightest "
-					>
-						<input
-							className="bg-background-lighter text-white outline-none hover:bg-background-lightest"
-							type="text"
-							value={email}
-							onChange={e => {
-								const email = e.target.value;
-								setEmail(email);
-								functions
-									.httpsCallable("getUserByEmail")({ email })
-									.then(r => {
-										if (r.data.email === email) {
-											setFoundUser(r.data);
-											setEmailValid(true);
-										} else {
-											setFoundUser(undefined);
-											setEmailValid(false);
-										}
-									})
-									.catch(e => console.error(e));
-							}}
-						/>
-						{foundUser && (
-							<div className="flex items-center">
-								<span>{foundUser.displayName}</span>
-								{foundUser.photoUrl ? (
-									<img
-										alt={foundUser.displayName + " profile picture"}
-										src={foundUser.photoUrl}
-										className="h-6 w-6 rounded-full ml-1 border border-white"
-									/>
-								) : (
-									<svg
-										className="text-gray-3 w-6 h-6 rounded-full ml-1 border border-white"
-										fill="currentColor"
-										viewBox="0 0 20 20"
-									>
-										<path
-											d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
-											clipRule="evenodd"
-											fillRule="evenodd"
-										/>
-									</svg>
-								)}
-							</div>
-						)}
-						<button
-							onClick={() => {
-								if (foundUser) {
-									props.onAdd(foundUser.uid);
-								}
-							}}
-						>
-							<svg
-								className={`h-8 w-8 ${
-									emailValid ? "text-white" : "text-background-lightest"
-								}`}
-								fill="none"
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth="2"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-							>
-								<path d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-							</svg>
-						</button>
-					</motion.div>
-				)}
-			</AnimatePresence>
 		</>
 	);
 }
