@@ -64,7 +64,7 @@ const GoalDetail = () => {
 				.then(users => users.map(user => user.data))
 				.then(users => setSharedWithUsers((users as unknown) as any));
 		}
-	}, [goalData, functions]);
+	}, [goalData, functions, sharedWithUsers]);
 
 	const [goalOwner, setGoalOwner] = useState<
 		{ displayName: string; photoUrl: string } | undefined
@@ -79,7 +79,7 @@ const GoalDetail = () => {
 					setGoalOwner(user.data);
 				});
 		}
-	}, [goalData, functions]);
+	}, [goalData, functions, goalOwner]);
 
 	function addPersonToGoal(uid: string) {
 		goal?.ref.update({
@@ -88,9 +88,17 @@ const GoalDetail = () => {
 	}
 
 	const [auth] = useAuthState(firebase.auth());
+	const [memoryOpen, setMemoryOpen] = useState(true);
 
 	return (
 		<div>
+			{memoryOpen && (
+				<CompletedDialog
+					show={memoryOpen}
+					onSubmit={() => setMemoryOpen(false)}
+					onClose={() => setMemoryOpen(false)}
+				/>
+			)}
 			<div className="flex items-center justify-between p-5">
 				<Link to={"/dashboard"}>
 					<svg fill="currentColor" className="w-8 h-8" viewBox="0 0 20 20">
@@ -114,6 +122,7 @@ const GoalDetail = () => {
 						</div>
 					</SkeletonTheme>
 				)}
+
 				{goalData && (
 					<>
 						<h1 className="text-3xl font-medium">{goalData.title}</h1>
@@ -136,13 +145,11 @@ const GoalDetail = () => {
 							</p>
 						)}
 
-						{sharedWithUsers.length > 0 && (
-							<ShareSection
-								onAdd={addPersonToGoal}
-								sharedWithUsers={sharedWithUsers}
-								hideAddButton={goalData.owner_uid !== auth?.uid}
-							/>
-						)}
+						<ShareSection
+							onAdd={addPersonToGoal}
+							sharedWithUsers={sharedWithUsers}
+							hideAddButton={goalData.owner_uid !== auth?.uid}
+						/>
 
 						{goalData.owner_uid === auth?.uid && (
 							<div className="w-full my-3">
@@ -153,7 +160,14 @@ const GoalDetail = () => {
 											? "bg-green-1 hover:bg-green-1 text-black"
 											: "text-green-1")
 									}
-									onClick={toggleCompleteGoal}
+									onClick={() => {
+										if (goalData?.completed) {
+											toggleCompleteGoal();
+										} else {
+											toggleCompleteGoal();
+											setMemoryOpen(true);
+										}
+									}}
 								>
 									<span className="text-xl">
 										{goalData.completed
@@ -300,14 +314,17 @@ function ShareSection(props: {
 		const email = e.target.value;
 		setEmail(email);
 		const regex = new RegExp(
-			"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)\\])"
+			"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)])"
 		);
 		if (!email.match(regex)) {
 			return;
 		}
+
+		/* Don't share with users already shared with */
 		if (props.sharedWithUsers.map(user => user.email).includes(email)) {
 			return;
 		}
+
 		functions
 			.httpsCallable("getUserByEmail")({ email })
 			.then(r => {
@@ -446,6 +463,75 @@ function DeleteButton(props: { onDelete: () => any }) {
 				/>
 			</svg>
 		</Button>
+	);
+}
+
+function CompletedDialog(props: { show: boolean; onSubmit: () => any; onClose: () => any }) {
+	const [description, setDescription] = useState("");
+
+	return (
+		<>
+			{/*Overlay*/}
+			<div className="absolute w-full left-0 top-0 h-full bg-black opacity-75" />
+			<div className="absolute w-full left-0 top-0 z-50 h-full p-2 bg-transparent">
+				<div onClick={props.onClose}>
+					<svg
+						fill="currentColor"
+						className={
+							"absolute cursor-pointer m-4 z-50 right-0 top-0 w-8 h-8 text-white"
+						}
+						viewBox="0 0 20 20"
+					>
+						<path
+							d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+							clipRule="evenodd"
+							fillRule="evenodd"
+						/>
+					</svg>
+				</div>
+
+				<div className="p-5 z-50 opacity-100 bg-background-lighter w-full h-full rounded">
+					<h1 className="text-3xl font-medium">
+						Congratulations! <br /> Record a memory
+					</h1>
+					<form
+						onSubmit={e => {
+							e.preventDefault();
+							props.onSubmit();
+						}}
+						className="mt-5 flex flex-col justify-center w-full"
+					>
+						<label className="text-gray-2 p-2" htmlFor="description">
+							Description
+						</label>
+						<textarea
+							id="description"
+							maxLength={400}
+							placeholder={
+								"How did you achieve your goal? What was the journey like?"
+							}
+							value={description}
+							onChange={e => setDescription(e.target.value)}
+							className="bg-background-lightest placeholder-gray-2 resize-none bg-gray-200 w-full rounded h-40 p-2"
+						/>
+					</form>
+
+					<Button
+						className={"mt-3 w-full bg-green-1 hover:bg-green-1 text-black"}
+						onClick={props.onSubmit}
+					>
+						<span className="text-xl">Mark as Completed</span>
+						<svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 20 20">
+							<path
+								d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+								clipRule="evenodd"
+								fillRule="evenodd"
+							/>
+						</svg>
+					</Button>
+				</div>
+			</div>
+		</>
 	);
 }
 
