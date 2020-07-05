@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { ChangeEvent, useEffect, useState } from "react";
 import { Link, useHistory, useParams } from "react-router-dom";
 import { useDocument, useDocumentData } from "react-firebase-hooks/firestore";
 import firebase from "firebase";
@@ -10,8 +10,44 @@ import { useAuthState } from "react-firebase-hooks/auth";
 const GoalDetail = () => {
 	let { id } = useParams();
 	const history = useHistory();
-
+	const [auth] = useAuthState(firebase.auth());
 	const functions = firebase.app().functions("europe-west1");
+	// Create a root reference
+	var storageRef = firebase.storage().ref();
+
+	function uploadFile() {
+		function handleFiles(event: ChangeEvent<HTMLInputElement>) {
+			const fileList = event.target.files; /* now you can work with the file list */
+			if (fileList !== null) {
+				const numFiles = fileList.length;
+				if (numFiles > 0 && numFiles <= 5) {
+					const promises = Array.from(fileList).map(f => {
+						return storageRef.put(f);
+					});
+
+					Promise.all(promises).then(uploadedFiles => {
+						return Promise.all(uploadedFiles.map(f => f.ref.getDownloadURL())).then(
+							downloadUrls => {
+								console.log(downloadUrls);
+							}
+						);
+					});
+				}
+				// TODO: Throw error
+				else {
+					return;
+				}
+			} else {
+				return;
+			}
+		}
+
+		return (
+			<div className="flex items-center justify-center w-1/2 ">
+				<input type="file" multiple onChange={handleFiles} />
+			</div>
+		);
+	}
 
 	function toggleCompleteGoal() {
 		goal?.ref.update({
@@ -86,8 +122,6 @@ const GoalDetail = () => {
 			shared_with: [...(goalData?.shared_with ?? []), uid]
 		} as Partial<Goal>);
 	}
-
-	const [auth] = useAuthState(firebase.auth());
 
 	return (
 		<div>
