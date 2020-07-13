@@ -40,7 +40,7 @@ const Dashboard = () => {
 				There was an error loading your bucketlist.
 			</Modal>
 			<div className={"flex flex-col"}>
-				<Header photoUrl={user?.photoURL} />
+				<Header photoUrl={user?.providerData.slice(-1)[0]?.photoURL} />
 
 				<div className="p-3">
 					{/*Loading */}
