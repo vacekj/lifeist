@@ -13,4 +13,10 @@ type Goal = {
 	updated_at: firebase.firestore.Timestamp;
 };
 
+type Memory = {
+	uid: string;
+	text: string;
+	photos: string[];
+};
+
 export default Goal;

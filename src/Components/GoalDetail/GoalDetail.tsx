@@ -6,48 +6,15 @@ import Goal from "../../Types/Goal.type";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuthState } from "react-firebase-hooks/auth";
+import useTranslation from "../../Utils/useTranslation";
+import strings from "./strings";
 
 const GoalDetail = () => {
+	const [t] = useTranslation(strings);
 	let { id } = useParams();
 	const history = useHistory();
 	const [auth] = useAuthState(firebase.auth());
 	const functions = firebase.app().functions("europe-west1");
-	// Create a root reference
-	var storageRef = firebase.storage().ref();
-
-	function uploadFile() {
-		function handleFiles(event: ChangeEvent<HTMLInputElement>) {
-			const fileList = event.target.files; /* now you can work with the file list */
-			if (fileList !== null) {
-				const numFiles = fileList.length;
-				if (numFiles > 0 && numFiles <= 5) {
-					const promises = Array.from(fileList).map(f => {
-						return storageRef.put(f);
-					});
-
-					Promise.all(promises).then(uploadedFiles => {
-						return Promise.all(uploadedFiles.map(f => f.ref.getDownloadURL())).then(
-							downloadUrls => {
-								console.log(downloadUrls);
-							}
-						);
-					});
-				}
-				// TODO: Throw error
-				else {
-					return;
-				}
-			} else {
-				return;
-			}
-		}
-
-		return (
-			<div className="flex items-center justify-center w-1/2 ">
-				<input type="file" multiple onChange={handleFiles} />
-			</div>
-		);
-	}
 
 	function toggleCompleteGoal() {
 		goal?.ref.update({
@@ -89,6 +56,7 @@ const GoalDetail = () => {
 		}[]
 	>([]);
 
+	/* Shared with */
 	useEffect(() => {
 		if (goalData?.shared_with?.length) {
 			const userPromises = goalData?.shared_with?.map(uid => {
@@ -106,6 +74,7 @@ const GoalDetail = () => {
 		{ displayName: string; photoUrl: string } | undefined
 	>(undefined);
 
+	/* Goal Owner */
 	useEffect(() => {
 		if (goalData) {
 			functions
@@ -123,8 +92,7 @@ const GoalDetail = () => {
 		} as Partial<Goal>);
 	}
 
-	const [auth] = useAuthState(firebase.auth());
-	const [memoryOpen, setMemoryOpen] = useState(true);
+	const [memoryOpen, setMemoryOpen] = useState(false);
 
 	return (
 		<div>
@@ -173,7 +141,7 @@ const GoalDetail = () => {
 
 						{auth?.uid && goalData.owner_uid !== auth.uid && goalOwner && (
 							<p>
-								<p className="mr-2">Goal set by:</p>
+								<p className="mr-2">{t("setBy")}</p>
 								<UserPill
 									name={goalOwner.displayName}
 									photoUrl={goalOwner.photoUrl}
@@ -206,9 +174,7 @@ const GoalDetail = () => {
 									}}
 								>
 									<span className="text-xl">
-										{goalData.completed
-											? "Undo Mark as Completed"
-											: "Mark as Completed"}
+										{goalData.completed ? t("uncomplete") : t("complete")}
 									</span>
 									{goalData.completed ? (
 										<svg
@@ -240,7 +206,7 @@ const GoalDetail = () => {
 								<div className="flex">
 									<Button className="w-full" onClick={toggleArchiveGoal}>
 										<span className="text-xl text-gray-2">
-											{goalData.archived ? "Unarchive" : "Archive"}
+											{goalData.archived ? t("archive") : t("unarchive")}
 										</span>
 										{goalData.archived ? (
 											<svg
@@ -274,7 +240,7 @@ const GoalDetail = () => {
 										className="ml-3 w-full"
 										onClick={() => history.push("/edit/" + id)}
 									>
-										<span className="text-xl text-gray-100">Edit</span>
+										<span className="text-xl text-gray-100">{t("edit")}</span>
 										<svg
 											className="w-8 h-8 ml-1 text-gray-100"
 											fill="currentColor"
@@ -332,6 +298,7 @@ function ShareSection(props: {
 	sharedWithUsers: any[];
 	hideAddButton?: boolean;
 }) {
+	const [t, setLang] = useTranslation(strings);
 	const [peoplePickerOpen, setPeoplePickerOpen] = useState(false);
 	const [email, setEmail] = useState("");
 	const [foundUser, setFoundUser] = useState<
@@ -360,7 +327,6 @@ function ShareSection(props: {
 		if (props.sharedWithUsers.map(user => user.email).includes(email)) {
 			return;
 		}
-
 		functions
 			.httpsCallable("getUserByEmail")({ email })
 			.then(r => {
@@ -375,11 +341,17 @@ function ShareSection(props: {
 		<>
 			{props.sharedWithUsers && (
 				<>
-					<div className="mt-5 mb-2">Shared with:</div>
+					<div onClick={() => setLang("cs")} className="mt-5 mb-2">
+						{t("sharedWith")}
+					</div>
 					<div className="flex flex-col mb-5 items-start">
 						<div className="flex items-center flex-wrap w-full">
 							{props.sharedWithUsers.map(user => (
-								<UserPill name={user.displayName} photoUrl={user.photoUrl} />
+								<UserPill
+									name={user.displayName}
+									key={user.uid}
+									photoUrl={user.photoUrl}
+								/>
 							))}
 
 							<div className="flex items-center w-full">
@@ -478,6 +450,7 @@ function ShareSection(props: {
 
 function DeleteButton(props: { onDelete: () => any }) {
 	const [confirmShown, setConfirmShown] = useState(false);
+	const [t] = useTranslation(strings);
 
 	return (
 		<Button
@@ -490,7 +463,7 @@ function DeleteButton(props: { onDelete: () => any }) {
 				}
 			}}
 		>
-			<span className="text-xl">{confirmShown ? "Are you sure?" : "Delete"}</span>
+			<span className="text-xl">{confirmShown ? t("confirm") : t("delete")}</span>
 			<svg className="w-8 h-8 ml-1 text-red-700" fill="currentColor" viewBox="0 0 20 20">
 				<path
 					d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
@@ -503,7 +476,46 @@ function DeleteButton(props: { onDelete: () => any }) {
 }
 
 function CompletedDialog(props: { show: boolean; onSubmit: () => any; onClose: () => any }) {
-	const [description, setDescription] = useState("");
+	const [text, setText] = useState("");
+
+	const [t] = useTranslation(strings);
+
+	// Create a root reference
+	const storageRef = firebase.storage().ref();
+
+	function uploadFile() {
+		function handleFiles(event: ChangeEvent<HTMLInputElement>) {
+			const fileList = event.target.files; /* now you can work with the file list */
+			if (fileList !== null) {
+				const numFiles = fileList.length;
+				if (numFiles > 0 && numFiles <= 5) {
+					const promises = Array.from(fileList).map(f => {
+						return storageRef.put(f);
+					});
+
+					Promise.all(promises).then(uploadedFiles => {
+						return Promise.all(uploadedFiles.map(f => f.ref.getDownloadURL())).then(
+							downloadUrls => {
+								console.log(downloadUrls);
+							}
+						);
+					});
+				}
+				// TODO: Throw error
+				else {
+					return;
+				}
+			} else {
+				return;
+			}
+		}
+
+		return (
+			<div className="flex items-center justify-center w-1/2 ">
+				<input type="file" multiple onChange={handleFiles} />
+			</div>
+		);
+	}
 
 	return (
 		<>
@@ -527,9 +539,7 @@ function CompletedDialog(props: { show: boolean; onSubmit: () => any; onClose: (
 				</div>
 
 				<div className="p-5 z-50 opacity-100 bg-background-lighter w-full h-full rounded">
-					<h1 className="text-3xl font-medium">
-						Congratulations! <br /> Record a memory
-					</h1>
+					<h1 className="text-3xl font-medium">{t("congrats")}</h1>
 					<form
 						onSubmit={e => {
 							e.preventDefault();
@@ -538,16 +548,14 @@ function CompletedDialog(props: { show: boolean; onSubmit: () => any; onClose: (
 						className="mt-5 flex flex-col justify-center w-full"
 					>
 						<label className="text-gray-2 p-2" htmlFor="description">
-							Description
+							{t("description")}
 						</label>
 						<textarea
 							id="description"
 							maxLength={400}
-							placeholder={
-								"How did you achieve your goal? What was the journey like?"
-							}
-							value={description}
-							onChange={e => setDescription(e.target.value)}
+							placeholder={t("how")}
+							value={text}
+							onChange={e => setText(e.target.value)}
 							className="bg-background-lightest placeholder-gray-2 resize-none bg-gray-200 w-full rounded h-40 p-2"
 						/>
 					</form>
@@ -556,7 +564,7 @@ function CompletedDialog(props: { show: boolean; onSubmit: () => any; onClose: (
 						className={"mt-3 w-full bg-green-1 hover:bg-green-1 text-black"}
 						onClick={props.onSubmit}
 					>
-						<span className="text-xl">Mark as Completed</span>
+						<span className="text-xl">{t("complete")}</span>
 						<svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 20 20">
 							<path
 								d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
