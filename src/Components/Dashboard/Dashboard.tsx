@@ -5,8 +5,6 @@ import { Link } from "react-router-dom";
 import Goal from "../../Types/Goal.type";
 import Modal from "../Modal";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
-// @ts-ignore
-import { Fade } from "react-reveal";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 
 const Dashboard = () => {
@@ -48,13 +46,11 @@ const Dashboard = () => {
 						Array(5)
 							.fill(0)
 							.map((_, i) => (
-								<Fade key={i}>
-									<SkeletonTheme color={"#232323"} highlightColor={"#444444"}>
-										<div className="mb-3">
-											<Skeleton height={74} />
-										</div>
-									</SkeletonTheme>
-								</Fade>
+								<SkeletonTheme color={"#232323"} highlightColor={"#444444"}>
+									<div className="mb-3">
+										<Skeleton height={74} />
+									</div>
+								</SkeletonTheme>
 							))}
 
 					{/*Shared goals*/}
@@ -67,19 +63,17 @@ const Dashboard = () => {
 					{sharedGoals &&
 						sharedGoals.map((g, i) => {
 							return (
-								<Fade cascade top duration={500} key={i}>
-									<Item
-										variant={
-											g.completed
-												? "completed"
-												: g.archived
-												? "archived"
-												: "normal"
-										}
-										key={i}
-										{...g}
-									/>
-								</Fade>
+								<Item
+									variant={
+										g.completed
+											? "completed"
+											: g.archived
+											? "archived"
+											: "normal"
+									}
+									key={i}
+									{...g}
+								/>
 							);
 						})}
 
@@ -94,19 +88,17 @@ const Dashboard = () => {
 						goals?.length > 0 &&
 						goals.map((g, i) => {
 							return (
-								<Fade cascade top duration={500} key={i}>
-									<Item
-										variant={
-											g.completed
-												? "completed"
-												: g.archived
-												? "archived"
-												: "normal"
-										}
-										key={i}
-										{...g}
-									/>
-								</Fade>
+								<Item
+									variant={
+										g.completed
+											? "completed"
+											: g.archived
+											? "archived"
+											: "normal"
+									}
+									key={i}
+									{...g}
+								/>
 							);
 						})}
 
@@ -214,7 +206,7 @@ function Item(
 			break;
 	}
 
-	return <Fade>{elem}</Fade>;
+	return elem;
 }
 
 export default Dashboard;

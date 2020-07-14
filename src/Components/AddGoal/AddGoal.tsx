@@ -1,15 +1,21 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import * as firebase from "firebase";
 import { Link, useHistory } from "react-router-dom";
+import { useForm } from "react-hook-form";
 import Goal from "../../Types/Goal.type";
 
-const AddGoal = () => {
-	const formRef = useRef<HTMLFormElement>(null);
-	const history = useHistory();
-	const [title, setTitle] = useState("");
-	const [description, setDescription] = useState("");
+type AddFormData = {
+	title: string;
+	description: string;
+};
 
-	function onSubmit() {
+const AddGoal = () => {
+	const history = useHistory();
+
+	const formRef = useRef<HTMLFormElement>(null);
+	const { register, handleSubmit, errors, control } = useForm();
+
+	function onSubmit(data: AddFormData) {
 		if (!formRef.current?.reportValidity()) {
 			return;
 		}
@@ -18,8 +24,7 @@ const AddGoal = () => {
 				.firestore()
 				.collection("goals")
 				.add({
-					title,
-					description,
+					...data,
 					owner_uid: firebase.auth().currentUser?.uid,
 					created_at: firebase.firestore.Timestamp.now(),
 					updated_at: firebase.firestore.Timestamp.now()
@@ -28,7 +33,7 @@ const AddGoal = () => {
 					history.push("/dashboard");
 				})
 				.catch(e => {
-					console.log(e);
+					console.error(e);
 					/*TODO: alert user of error*/
 				});
 		}
@@ -48,7 +53,7 @@ const AddGoal = () => {
 					</svg>
 				</Link>
 				<h1 className="text-2xl">Add a Goal</h1>
-				<button onClick={onSubmit}>
+				<button onClick={handleSubmit(onSubmit)}>
 					<svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
 						<path
 							d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
@@ -62,35 +67,30 @@ const AddGoal = () => {
 			{/* Form */}
 			<div>
 				<form
-					onSubmit={e => {
-						e.preventDefault();
-						onSubmit();
-					}}
 					ref={formRef}
+					onSubmit={handleSubmit(onSubmit)}
 					className="flex flex-col justify-center w-full p-3"
 				>
 					<label className="text-gray-2 pl-1" htmlFor="title">
 						Title
 					</label>
 					<input
-						id="title"
+						name="title"
 						required={true}
 						minLength={1}
 						maxLength={200}
 						placeholder={"Parachute"}
-						value={title}
-						onChange={e => setTitle(e.target.value)}
+						ref={register}
 						className="bg-background-lighter placeholder-gray-2 w-full mb-3 rounded h-10 p-2 "
 					/>
 					<label className="text-gray-2 pl-1" htmlFor="description">
 						Description
 					</label>
 					<textarea
-						id="description"
+						name="description"
 						maxLength={400}
 						placeholder={"Jump out of a plane with a parachute (or without)"}
-						value={description}
-						onChange={e => setDescription(e.target.value)}
+						ref={register}
 						className="bg-background-lighter placeholder-gray-2 resize-none bg-gray-200 w-full rounded h-40 p-2"
 					/>
 				</form>
