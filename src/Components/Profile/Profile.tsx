@@ -91,8 +91,12 @@ const Profile = () => {
 						onChange={e => changeLang(e.target.value)}
 						className="bg-background-lighter px-4 py-2 rounded"
 					>
-						<option value="cs">Česky</option>
-						<option value="en">English</option>
+						<option value="cs" selected={changeLang() === "cs"}>
+							Česky
+						</option>
+						<option value="en" selected={changeLang() === "en"}>
+							English
+						</option>
 					</select>
 				</div>
 			</div>
