@@ -27,7 +27,9 @@
     "react-spinners": "^0.8.3",
     "rosetta": "^1.1.0",
     "tailwindcss": "^1.2.0",
-    "typescript": "^3.9.5"
+    "typescript": "^3.9.5",
+    "use-local-storage-state": "^4.0.0",
+    "use-persisted-state": "^0.3.0"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -61,6 +63,7 @@
     "uppercase"
   ],
   "devDependencies": {
-    "@types/react-router-dom": "^5.1.5"
+    "@types/react-router-dom": "^5.1.5",
+    "@types/use-persisted-state": "^0.3.0"
   }
 }

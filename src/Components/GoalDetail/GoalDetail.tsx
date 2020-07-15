@@ -379,7 +379,7 @@ function ShareSection(props: {
 										className="p-3 mb-2 flex items-center rounded bg-background-lighter outline-none"
 										onClick={() => setPeoplePickerOpen(!peoplePickerOpen)}
 									>
-										{peoplePickerOpen ? "Cancel" : "Invite"}
+										{peoplePickerOpen ? t("cancel") : t("invite")}
 									</button>
 								)}
 							</div>

@@ -4,14 +4,22 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { Link, useHistory } from "react-router-dom";
 import { formatDistance } from "date-fns";
 import { Button } from "../GoalDetail/GoalDetail";
+import useTranslation from "../../Utils/useTranslation";
+import csLocale from "date-fns/locale/cs";
+import strings from "./strings";
 
 const Profile = () => {
 	const [user] = useAuthState(firebase.auth());
 	const history = useHistory();
+	const [t, changeLang] = useTranslation(strings);
 	const getTimeSinceRegister = (user: firebase.User) => {
 		if (user.metadata.creationTime) {
 			const registeredAt = new Date(user.metadata.creationTime);
-			return formatDistance(new Date(), registeredAt);
+			return formatDistance(
+				new Date(),
+				registeredAt,
+				changeLang() === "cs" ? { locale: csLocale } : undefined
+			);
 		}
 	};
 
@@ -38,7 +46,7 @@ const Profile = () => {
 							});
 					}}
 				>
-					Log out{" "}
+					{t("logOut")}{" "}
 					<svg
 						className="h-6 w-6 text-white ml-2"
 						fill="none"
@@ -72,10 +80,21 @@ const Profile = () => {
 				</div>
 				{user?.metadata.creationTime && (
 					<div className="text-lg mt-3 text-gray-2">
-						Registered for{" "}
+						{t("registeredFor")}&nbsp;
 						<span className="text-white text-xl">{getTimeSinceRegister(user)}</span>
 					</div>
 				)}
+
+				<div className="flex justify-between w-full mt-2">
+					<div className="text-lg ">{t("language")}</div>
+					<select
+						onChange={e => changeLang(e.target.value)}
+						className="bg-background-lighter px-4 py-2 rounded"
+					>
+						<option value="cs">Česky</option>
+						<option value="en">English</option>
+					</select>
+				</div>
 			</div>
 		</div>
 	);

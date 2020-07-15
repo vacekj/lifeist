@@ -13,7 +13,7 @@ const AddGoal = () => {
 	const history = useHistory();
 
 	const formRef = useRef<HTMLFormElement>(null);
-	const { register, handleSubmit, errors, control } = useForm();
+	const { register, handleSubmit } = useForm();
 
 	function onSubmit(data: AddFormData) {
 		if (!formRef.current?.reportValidity()) {
