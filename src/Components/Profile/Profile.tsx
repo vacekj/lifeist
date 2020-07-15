@@ -85,7 +85,7 @@ const Profile = () => {
 					</div>
 				)}
 
-				<div className="flex justify-between w-full mt-2">
+				<div className="flex justify-between w-full mt-4 items-center">
 					<div className="text-lg ">{t("language")}</div>
 					<select
 						onChange={e => changeLang(e.target.value)}

@@ -1,20 +1,27 @@
-import React, { ChangeEvent, useEffect, useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 import { Link, useHistory, useParams } from "react-router-dom";
 import { useDocument, useDocumentData } from "react-firebase-hooks/firestore";
-import firebase from "firebase";
+import firebase, { User } from "firebase";
 import Goal from "../../Types/Goal.type";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuthState } from "react-firebase-hooks/auth";
 import useTranslation from "../../Utils/useTranslation";
 import strings from "./strings";
+import { useFunction } from "../../Utils/useCloudFunction";
+
+interface SharedWithUser {
+	email: string;
+	photoURL: string;
+	displayName: string;
+	uid: string;
+}
 
 const GoalDetail = () => {
 	const [t] = useTranslation(strings);
 	let { id } = useParams();
 	const history = useHistory();
 	const [auth] = useAuthState(firebase.auth());
-	const functions = firebase.app().functions("europe-west1");
 
 	function toggleCompleteGoal() {
 		goal?.ref.update({
@@ -47,44 +54,19 @@ const GoalDetail = () => {
 			.doc(id)
 	);
 
-	const [sharedWithUsers, setSharedWithUsers] = useState<
+	const sharedWithUserResponse = useFunction<SharedWithUser[]>(
+		"getUsersByUids",
 		{
-			email: string;
-			photoUrl: string;
-			displayName: string;
-			uid: string;
-		}[]
-	>([]);
+			uids: goalData?.shared_with
+		},
+		goalData?.shared_with
+	);
 
-	/* Shared with */
-	useEffect(() => {
-		if (goalData?.shared_with?.length) {
-			const userPromises = goalData?.shared_with?.map(uid => {
-				return functions.httpsCallable("getUserByUid")({ uid });
-			});
-
-			Promise.all(userPromises)
-				// @ts-ignore
-				.then(users => users.map(user => user.data))
-				.then(users => setSharedWithUsers((users as unknown) as any));
-		}
-	}, [goalData, functions, sharedWithUsers]);
-
-	const [goalOwner, setGoalOwner] = useState<
-		{ displayName: string; photoUrl: string } | undefined
-	>(undefined);
-
-	/* Goal Owner */
-	useEffect(() => {
-		if (goalData) {
-			functions
-				.httpsCallable("getUserByUid")({ uid: goalData.owner_uid })
-				.then(user => {
-					// @ts-ignore
-					setGoalOwner(user.data);
-				});
-		}
-	}, [goalData, functions, goalOwner]);
+	const goalOwner = useFunction<User>(
+		"getUserByUid",
+		{ uid: goalData?.owner_uid },
+		goalData?.owner_uid
+	);
 
 	function addPersonToGoal(uid: string) {
 		goal?.ref.update({
@@ -139,19 +121,19 @@ const GoalDetail = () => {
 							{goalData.description.length ? goalData.description : "No description"}
 						</p>
 
-						{auth?.uid && goalData.owner_uid !== auth.uid && goalOwner && (
+						{goalOwner.data && goalOwner.data.uid !== auth?.uid && (
 							<p>
 								<p className="mr-2">{t("setBy")}</p>
 								<UserPill
-									name={goalOwner.displayName}
-									photoUrl={goalOwner.photoUrl}
+									name={goalOwner.data.displayName ?? ""}
+									photoURL={goalOwner.data.photoURL ?? ""}
 								/>
 							</p>
 						)}
 
 						<ShareSection
 							onAdd={addPersonToGoal}
-							sharedWithUsers={sharedWithUsers}
+							sharedWithUsers={sharedWithUserResponse.data ?? []}
 							hideAddButton={goalData.owner_uid !== auth?.uid}
 						/>
 
@@ -266,14 +248,14 @@ const GoalDetail = () => {
 	);
 };
 
-function UserPill(props: { name: string; photoUrl: string }) {
+function UserPill(props: { name: string; photoURL: string }) {
 	return (
 		<motion.p className="mr-2 mb-2 inline-flex flex-row items-center p-3 rounded-full bg-background-lighter mb-2">
 			<span>{props.name}</span>
-			{props.photoUrl ? (
+			{props.photoURL ? (
 				<img
 					alt={props.name + " profile picture"}
-					src={props.photoUrl}
+					src={props.photoURL}
 					className="h-6 w-6 rounded-full ml-1 border border-white"
 				/>
 			) : (
@@ -295,30 +277,23 @@ function UserPill(props: { name: string; photoUrl: string }) {
 
 function ShareSection(props: {
 	onAdd: (uid: string) => any;
-	sharedWithUsers: any[];
+	sharedWithUsers: SharedWithUser[];
 	hideAddButton?: boolean;
 }) {
-	const [t, setLang] = useTranslation(strings);
+	const [t] = useTranslation(strings);
 	const [peoplePickerOpen, setPeoplePickerOpen] = useState(false);
 	const [email, setEmail] = useState("");
-	const [foundUser, setFoundUser] = useState<
-		| undefined
-		| {
-				email: string;
-				photoUrl: string;
-				displayName: string;
-				uid: string;
-		  }
-	>(undefined);
-
-	const functions = firebase.app().functions("europe-west1");
+	const [enabled, setEnabled] = useState(false);
+	const foundUser = useFunction<User>("getUserByEmail", { email }, enabled);
 
 	function onPickerChange(e: React.ChangeEvent<HTMLInputElement>) {
 		const email = e.target.value;
 		setEmail(email);
+
 		const regex = new RegExp(
 			"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)])"
 		);
+
 		if (!email.match(regex)) {
 			return;
 		}
@@ -327,30 +302,22 @@ function ShareSection(props: {
 		if (props.sharedWithUsers.map(user => user.email).includes(email)) {
 			return;
 		}
-		functions
-			.httpsCallable("getUserByEmail")({ email })
-			.then(r => {
-				if (r.data.email === email) {
-					setFoundUser(r.data);
-				}
-			})
-			.catch(e => console.error(e));
+
+		setEnabled(true);
 	}
 
 	return (
 		<>
 			{props.sharedWithUsers && (
 				<>
-					<div onClick={() => setLang("cs")} className="mt-5 mb-2">
-						{t("sharedWith")}
-					</div>
+					<div className="mt-5 mb-2">{t("sharedWith")}</div>
 					<div className="flex flex-col mb-5 items-start">
 						<div className="flex items-center flex-wrap w-full">
 							{props.sharedWithUsers.map(user => (
 								<UserPill
-									name={user.displayName}
+									name={user.displayName ?? ""}
 									key={user.uid}
-									photoUrl={user.photoUrl}
+									photoURL={user.photoURL ?? ""}
 								/>
 							))}
 
@@ -386,7 +353,7 @@ function ShareSection(props: {
 						</div>
 
 						<AnimatePresence>
-							{peoplePickerOpen && foundUser && (
+							{peoplePickerOpen && foundUser.data && (
 								<motion.div
 									initial={{ height: 0 }}
 									animate={{ height: "auto" }}
@@ -395,10 +362,12 @@ function ShareSection(props: {
 								 text-white outline-none hover:bg-background-lightest overflow-hidden"
 								>
 									<div className="flex items-center">
-										{foundUser.photoUrl ? (
+										{foundUser.data.photoURL ? (
 											<img
-												alt={foundUser.displayName + " profile picture"}
-												src={foundUser.photoUrl}
+												alt={
+													foundUser.data.displayName + " profile picture"
+												}
+												src={foundUser.data.photoURL}
 												className="inline h-6 w-6 rounded-full mr-1 border border-white"
 											/>
 										) : (
@@ -415,13 +384,13 @@ function ShareSection(props: {
 											</svg>
 										)}
 
-										<span>{foundUser.displayName}</span>
+										<span>{foundUser.data.displayName}</span>
 									</div>
 
 									<button
 										onClick={() => {
-											if (foundUser) {
-												props.onAdd(foundUser.uid);
+											if (foundUser.data) {
+												props.onAdd(foundUser.data.uid);
 											}
 										}}
 										className=""

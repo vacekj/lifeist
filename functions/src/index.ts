@@ -1,63 +1,114 @@
-import * as firebase from "firebase";
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
-// @ts-ignore
+import * as express from "express";
+
 admin.initializeApp();
+const cookieParser = require("cookie-parser")();
+const cors = require("cors")({ origin: true });
+const bodyParser = require("body-parser");
+const app = express();
 
-export const getStats = functions.region("europe-west1").https.onCall(async data => {
-	return await getAllGoals();
-});
-
-async function getAllGoals() {
-	const snapshot = await admin
-		.firestore()
-		.collection("goals")
-		.get();
-	const data = snapshot.docs.map(g => g.data() as Goal);
-
-	return data.map(goal => {
-		return { title: goal.title, completed: goal.completed };
-	});
-}
-
-export const getUserByEmail = functions.region("europe-west1").https.onCall(async data => {
-	try {
-		const user = await admin.auth().getUserByEmail(data.email);
-		return {
-			uid: user.uid,
-			email: user.email,
-			displayName: user.displayName,
-			photoUrl: user.photoURL
-		};
-	} catch (e) {
-		return e;
+// Express middleware that validates Firebase ID Tokens passed in the Authorization HTTP header.
+// The Firebase ID token needs to be passed as a Bearer token in the Authorization HTTP header like this:
+// `Authorization: Bearer <Firebase ID Token>`.
+// when decoded successfully, the ID Token content will be added as `req.user`.
+const validateFirebaseIdToken = async (
+	req: express.Request,
+	res: express.Response,
+	next: express.NextFunction
+) => {
+	if (
+		(!req.headers.authorization || !req.headers.authorization.startsWith("Bearer ")) &&
+		!(req.cookies && req.cookies.__session)
+	) {
+		console.error(
+			"No Firebase ID token was passed as a Bearer token in the Authorization header.",
+			"Make sure you authorize your request by providing the following HTTP header:",
+			"Authorization: Bearer <Firebase ID Token>",
+			'or by passing a "__session" cookie.'
+		);
+		res.status(403).send("Unauthorized");
+		return;
 	}
-});
 
-export const getUserByUid = functions.region("europe-west1").https.onCall(async data => {
-	try {
-		const user = await admin.auth().getUser(data.uid);
-		return {
-			uid: user.uid,
-			email: user.email,
-			displayName: user.displayName,
-			photoUrl: user.photoURL
-		};
-	} catch (e) {
-		return e;
+	let idToken;
+	if (req.headers.authorization && req.headers.authorization.startsWith("Bearer ")) {
+		console.log('Found "Authorization" header');
+		// Read the ID Token from the Authorization header.
+		idToken = req.headers.authorization.split("Bearer ")[1];
+	} else if (req.cookies) {
+		// Read the ID Token from cookie.
+		idToken = req.cookies.__session;
+	} else {
+		// No cookie
+		res.status(403).send("Unauthorized");
+		return;
 	}
-});
 
-type Goal = {
-	uid: string;
-	title: string;
-	description: string;
-	owner_uid: string;
-	archived: boolean;
-	completed: boolean;
-	/** Array of user UIDs with which the Goal was shared */
-	shared_with?: string[];
-	completed_on: firebase.firestore.Timestamp;
-	created_at: firebase.firestore.Timestamp;
-	updated_at: firebase.firestore.Timestamp;
+	try {
+		// @ts-ignore
+		req.user = await admin.auth().verifyIdToken(idToken);
+		next();
+		return;
+	} catch (error) {
+		console.error("Error while verifying Firebase ID token:", error);
+		res.status(403).send("Unauthorized");
+		return;
+	}
 };
+
+app.use(cors);
+app.use(bodyParser.json());
+app.use(cookieParser);
+app.use(validateFirebaseIdToken);
+
+app.post("/getUserByEmail", async (req, res) => {
+	try {
+		const user = await admin.auth().getUserByEmail(req.body.email);
+		return res.json({
+			uid: user.uid,
+			email: user.email,
+			displayName: user.displayName,
+			photoURL: user.photoURL
+		});
+	} catch (e) {
+		return res.json(e);
+	}
+});
+
+app.post("/getUserByUid", async (req, res) => {
+	try {
+		const user = await admin.auth().getUser(req.body.uid);
+		return res.json({
+			uid: user.uid,
+			email: user.email,
+			displayName: user.displayName,
+			photoURL: user.photoURL
+		});
+	} catch (e) {
+		return res.json(e);
+	}
+});
+
+app.post("/getUsersByUids", async (req, res) => {
+	try {
+		const promises = req.body.uids.map((uid: string) => admin.auth().getUser(uid));
+		console.log(promises);
+		const users: admin.auth.UserRecord[] = await Promise.all(promises);
+		console.log(users);
+		return res.json(
+			users.map(user => {
+				return {
+					uid: user.uid,
+					email: user.email,
+					displayName: user.displayName,
+					photoURL: user.photoURL
+				};
+			})
+		);
+	} catch (e) {
+		return res.json(e);
+	}
+});
+
+exports.app = functions.region("europe-west1").https.onRequest(app);

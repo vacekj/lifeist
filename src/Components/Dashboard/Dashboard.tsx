@@ -41,7 +41,7 @@ const Dashboard = () => {
 				{t("error")}
 			</Modal>
 			<div className={"flex flex-col"}>
-				<Header photoUrl={user?.providerData.slice(-1)[0]?.photoURL} />
+				<Header photoURL={user?.providerData.slice(-1)[0]?.photoURL} />
 
 				<div className="p-3">
 					{/*Loading */}
@@ -117,16 +117,16 @@ const Dashboard = () => {
 	);
 };
 
-function Header(props: { photoUrl: string | null | undefined }) {
+function Header(props: { photoURL: string | null | undefined }) {
 	const [t] = useTranslation(strings);
 
 	return (
 		<div className="flex justify-between p-5 pl-6 items-center">
 			<Link to={"/profile"}>
-				{props.photoUrl ? (
+				{props.photoURL ? (
 					<img
 						alt={"profile picture"}
-						src={props.photoUrl}
+						src={props.photoURL}
 						className="h-6 w-6 rounded-full ml-1 border border-white"
 					/>
 				) : (
