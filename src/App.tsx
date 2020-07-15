@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { BrowserRouter as Router, Redirect, Route, Switch } from "react-router-dom";
 import Home from "./Components/Home";
 import Dashboard from "./Components/Dashboard";
@@ -25,10 +25,6 @@ function App() {
 	}
 
 	const [auth, loading] = useAuthState(firebase.auth());
-
-	useEffect(() => {
-		window.langCode = window.navigator.language.slice(0, 2);
-	}, [window.langCode]);
 
 	return (
 		<div className="bg-background-primary text-white md:max-w-4xl md:m-auto">

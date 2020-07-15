@@ -1,11 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 import * as firebase from "firebase";
 import { useHistory, useParams } from "react-router-dom";
-import Goal from "../../Types/Goal.type";
+import Goal from "Types/Goal.type";
 import { useDocument } from "react-firebase-hooks/firestore";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import useTranslation from "Utils/useTranslation";
+import strings from "./strings";
 
 const AddGoal = () => {
+	const [t] = useTranslation(strings);
 	const { id } = useParams();
 	const formRef = useRef<HTMLFormElement>(null);
 	const history = useHistory();
@@ -55,7 +58,7 @@ const AddGoal = () => {
 						/>
 					</svg>
 				</button>
-				<h1 className="text-2xl">Edit Goal</h1>
+				<h1 className="text-2xl">{t("edit")}</h1>
 				<button onClick={onSubmit}>
 					<svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
 						<path
@@ -70,7 +73,7 @@ const AddGoal = () => {
 			{/* Form */}
 			<div>
 				<form ref={formRef} className="flex flex-col justify-center w-full p-3">
-					<label className="text-gray-2 pl-1">Title</label>
+					<label className="text-gray-2 pl-1">{t("title")}</label>
 					{loading ? (
 						<SkeletonTheme color={"#232323"} highlightColor={"#444444"}>
 							<div className="mb-3">
@@ -88,7 +91,7 @@ const AddGoal = () => {
 						/>
 					)}
 
-					<label className="text-gray-2 pl-1">Description</label>
+					<label className="text-gray-2 pl-1">{t("description")}</label>
 					{loading ? (
 						<SkeletonTheme color={"#232323"} highlightColor={"#444444"}>
 							<div className="mb-3">

@@ -3,6 +3,8 @@ import * as firebase from "firebase";
 import { Link, useHistory } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import Goal from "../../Types/Goal.type";
+import useTranslation from "../../Utils/useTranslation";
+import strings from "./strings";
 
 type AddFormData = {
 	title: string;
@@ -10,6 +12,7 @@ type AddFormData = {
 };
 
 const AddGoal = () => {
+	const [t] = useTranslation(strings);
 	const history = useHistory();
 
 	const formRef = useRef<HTMLFormElement>(null);
@@ -52,7 +55,7 @@ const AddGoal = () => {
 						/>
 					</svg>
 				</Link>
-				<h1 className="text-2xl">Add a Goal</h1>
+				<h1 className="text-2xl">{t("add")}</h1>
 				<button onClick={handleSubmit(onSubmit)}>
 					<svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
 						<path
@@ -72,24 +75,24 @@ const AddGoal = () => {
 					className="flex flex-col justify-center w-full p-3"
 				>
 					<label className="text-gray-2 pl-1" htmlFor="title">
-						Title
+						{t("title")}
 					</label>
 					<input
 						name="title"
 						required={true}
 						minLength={1}
 						maxLength={200}
-						placeholder={"Parachute"}
+						placeholder={t("placeholderTitle")}
 						ref={register}
 						className="bg-background-lighter placeholder-gray-2 w-full mb-3 rounded h-10 p-2 "
 					/>
 					<label className="text-gray-2 pl-1" htmlFor="description">
-						Description
+						{t("description")}
 					</label>
 					<textarea
 						name="description"
 						maxLength={400}
-						placeholder={"Jump out of a plane with a parachute (or without)"}
+						placeholder={t("placeholderDesc")}
 						ref={register}
 						className="bg-background-lighter placeholder-gray-2 resize-none bg-gray-200 w-full rounded h-40 p-2"
 					/>

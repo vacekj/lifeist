@@ -2,7 +2,7 @@ import rosetta from "rosetta";
 import { useState } from "react";
 import { createLocalStorageStateHook } from "use-local-storage-state";
 
-const useLang = createLocalStorageStateHook("lang", "cs");
+const useLang = createLocalStorageStateHook("lang", window.navigator.language.slice(0, 2));
 
 export default function useTranslation(
 	translationfile: Record<string, any>

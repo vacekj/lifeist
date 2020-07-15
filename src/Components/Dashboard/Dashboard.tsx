@@ -6,9 +6,12 @@ import Goal from "../../Types/Goal.type";
 import Modal from "../Modal";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import { useCollectionData } from "react-firebase-hooks/firestore";
+import useTranslation from "../../Utils/useTranslation";
+import strings from "./strings";
 
 const Dashboard = () => {
 	const [error, setError] = useState<any>(null);
+	const [t] = useTranslation(strings);
 
 	const [user, loading] = useAuthState(firebase.auth());
 	const [goals] = useCollectionData<Goal>(
@@ -35,7 +38,7 @@ const Dashboard = () => {
 				onClose={() => setError(null)}
 				showing={error !== null}
 			>
-				There was an error loading your bucketlist.
+				{t("error")}
 			</Modal>
 			<div className={"flex flex-col"}>
 				<Header photoUrl={user?.providerData.slice(-1)[0]?.photoURL} />
@@ -56,7 +59,7 @@ const Dashboard = () => {
 					{/*Shared goals*/}
 					{sharedGoals?.length !== undefined && sharedGoals.length > 0 && (
 						<div className="flex items-center justify-center text-sm text-gray-3 my-3 mt-5">
-							Shared with you
+							{t("sharedWithYou")}
 						</div>
 					)}
 
@@ -80,7 +83,7 @@ const Dashboard = () => {
 					{/*Goals*/}
 					{goals?.length !== undefined && goals.length > 0 && (
 						<div className="flex items-center justify-center text-sm text-gray-3 my-3 mt-5">
-							Your Goals
+							{t("yourGoals")}
 						</div>
 					)}
 
@@ -105,7 +108,7 @@ const Dashboard = () => {
 					{/* No Goals*/}
 					{goals && goals.length === 0 && (
 						<div className="flex items-center justify-center text-xl text-gray-3">
-							Add a goal by tapping the Plus icon
+							{t("noGoals")}
 						</div>
 					)}
 				</div>
@@ -115,6 +118,8 @@ const Dashboard = () => {
 };
 
 function Header(props: { photoUrl: string | null | undefined }) {
+	const [t] = useTranslation(strings);
+
 	return (
 		<div className="flex justify-between p-5 pl-6 items-center">
 			<Link to={"/profile"}>
@@ -135,7 +140,7 @@ function Header(props: { photoUrl: string | null | undefined }) {
 				)}
 			</Link>
 
-			<h1 className={"text-3xl font-medium "}>My bucketlist</h1>
+			<h1 className={"text-3xl font-medium "}>{t("goals")}</h1>
 
 			<Link to={"/add"} className={"focus:outline-none focus:bg-none"}>
 				<svg className="text-green-1 w-8 h-8" fill="currentColor" viewBox="0 0 20 20">

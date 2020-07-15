@@ -206,7 +206,7 @@ const GoalDetail = () => {
 								<div className="flex">
 									<Button className="w-full" onClick={toggleArchiveGoal}>
 										<span className="text-xl text-gray-2">
-											{goalData.archived ? t("archive") : t("unarchive")}
+											{goalData.archived ? t("unarchive") : t("archive")}
 										</span>
 										{goalData.archived ? (
 											<svg
