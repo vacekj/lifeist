@@ -15,7 +15,6 @@ button:active, button:focus {
 
 body {
     height: 100vh;
-    background-color: #191919;
 }
 
 #root {

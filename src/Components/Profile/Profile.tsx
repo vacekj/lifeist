@@ -64,6 +64,7 @@ const Profile = () => {
 			<div className="flex flex-col items-center justify-center p-5">
 				{user?.photoURL && (
 					<img
+						referrerPolicy="no-referrer"
 						className="mb-3 w-24 h-24 rounded-full border-background-lightest border-2"
 						src={user?.photoURL}
 						alt="Profile"

@@ -4,9 +4,9 @@ import { useQuery } from "react-query";
 
 function firebaseFetcher(name: string, data: any) {
 	const endpointUrl =
-		process.env.NODE_ENV === "production"
-			? "https://europe-west1-bucketlist-84978.cloudfunctions.net/app/"
-			: "http://localhost:5001/bucketlist-84978/europe-west1/app/";
+		process.env.FIREBASE_ENV === "local"
+			? "http://localhost:5001/bucketlist-84978/europe-west1/app/"
+			: "https://europe-west1-bucketlist-84978.cloudfunctions.net/app/";
 
 	// @ts-ignore
 	return firebase

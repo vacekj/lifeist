@@ -254,6 +254,7 @@ function UserPill(props: { name: string; photoURL: string }) {
 			<span>{props.name}</span>
 			{props.photoURL ? (
 				<img
+					referrerPolicy="no-referrer"
 					alt={props.name + " profile picture"}
 					src={props.photoURL}
 					className="h-6 w-6 rounded-full ml-1 border border-white"
@@ -284,8 +285,10 @@ function ShareSection(props: {
 	const [peoplePickerOpen, setPeoplePickerOpen] = useState(false);
 	const [email, setEmail] = useState("");
 	const [enabled, setEnabled] = useState(false);
+	/*TODO: Dont use the hook here*/
 	const foundUser = useFunction<User>("getUserByEmail", { email }, enabled);
 
+	/*TODO: debounce this, or only call when user stops typing */
 	function onPickerChange(e: React.ChangeEvent<HTMLInputElement>) {
 		const email = e.target.value;
 		setEmail(email);

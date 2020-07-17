@@ -11,6 +11,8 @@ import "./App.css";
 import Profile from "./Components/Profile";
 import { useAuthState } from "react-firebase-hooks/auth";
 import firebaseConfig from "./firebase.config.js";
+import BottomNavBar from "./Components/BottomNavBar";
+import Chat from "./Components/Chat";
 
 declare global {
 	interface Window {
@@ -27,17 +29,19 @@ function App() {
 	const [auth, loading] = useAuthState(firebase.auth());
 
 	return (
-		<div className="bg-background-primary text-white md:max-w-4xl md:m-auto">
+		<div className="flex flex-col justify-between md:max-w-4xl md:m-auto h-screen">
 			<Router>
 				{!auth && !loading && window.location.pathname !== "/" && <Redirect to={"/"} />}
 				<Switch>
-					<Route path={"/add"} children={<AddGoal />} />
-					<Route path={"/edit/:id"} children={<EditGoal />} />
 					<Route path={"/dashboard"} children={<Dashboard />} />
 					<Route path={"/goal/:id"} children={<GoalDetail />} />
+					<Route path={"/add"} children={<AddGoal />} />
+					<Route path={"/edit/:id"} children={<EditGoal />} />
 					<Route path={"/profile"} children={<Profile />} />
+					<Route path={"/chat"} children={<Chat />} />
 					<Route path={"/"} children={<Home />} />
 				</Switch>
+				<BottomNavBar />
 			</Router>
 		</div>
 	);
