@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import Goal from "../../Types/Goal.type";
 import useTranslation from "../../Utils/useTranslation";
 import strings from "./strings";
+import { AES } from "crypto-js";
+import { useAuthState } from "react-firebase-hooks/auth";
 
 type AddFormData = {
 	title: string;
@@ -14,6 +16,7 @@ type AddFormData = {
 const AddGoal = () => {
 	const [t] = useTranslation(strings);
 	const history = useHistory();
+	const [user, loading, error] = useAuthState(firebase.auth());
 
 	const formRef = useRef<HTMLFormElement>(null);
 	const { register, handleSubmit } = useForm();
@@ -22,24 +25,31 @@ const AddGoal = () => {
 		if (!formRef.current?.reportValidity()) {
 			return;
 		}
-		if (firebase.auth().currentUser?.uid) {
-			firebase
-				.firestore()
-				.collection("goals")
-				.add({
-					...data,
-					owner_uid: firebase.auth().currentUser?.uid,
-					created_at: firebase.firestore.Timestamp.now(),
-					updated_at: firebase.firestore.Timestamp.now()
-				} as Goal)
-				.then(() => {
-					history.push("/dashboard");
-				})
-				.catch(e => {
-					console.error(e);
-					/*TODO: alert user of error*/
-				});
+		if (!user) {
+			return;
 		}
+
+		const encryptedTitle = AES.encrypt(data.title, user.uid).toString();
+		const encryptedDesc = AES.encrypt(data.description, user.uid).toString();
+
+		firebase
+			.firestore()
+			.collection("goals")
+			.add({
+				title: encryptedTitle,
+				description: encryptedDesc,
+				encrypted: true,
+				owner_uid: firebase.auth().currentUser?.uid,
+				created_at: firebase.firestore.Timestamp.now(),
+				updated_at: firebase.firestore.Timestamp.now()
+			} as Goal)
+			.then(() => {
+				history.push("/dashboard");
+			})
+			.catch(e => {
+				console.error(e);
+				/*TODO: alert user of error*/
+			});
 	}
 
 	return (
@@ -55,7 +65,6 @@ const AddGoal = () => {
 						/>
 					</svg>
 				</Link>
-				<h1 className="text-2xl">{t("add")}</h1>
 				<button onClick={handleSubmit(onSubmit)}>
 					<svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
 						<path
@@ -68,25 +77,27 @@ const AddGoal = () => {
 			</div>
 
 			{/* Form */}
-			<div>
+			<div className="p-3">
+				<h1 className="text-5xl font-bold">{t("add")}</h1>
 				<form
 					ref={formRef}
 					onSubmit={handleSubmit(onSubmit)}
-					className="flex flex-col justify-center w-full p-3"
+					className="flex flex-col justify-center w-full"
 				>
-					<label className="text-gray-2 pl-1" htmlFor="title">
+					<label className="text-gray-2" htmlFor="title">
 						{t("title")}
 					</label>
 					<input
+						autoFocus
 						name="title"
 						required={true}
 						minLength={1}
 						maxLength={200}
 						placeholder={t("placeholderTitle")}
 						ref={register}
-						className="bg-background-lighter placeholder-gray-2 w-full mb-3 rounded h-10 p-2 "
+						className="placeholder-gray-2 w-full text-3xl text-medium mb-3 rounded h-10"
 					/>
-					<label className="text-gray-2 pl-1" htmlFor="description">
+					<label className="text-gray-2" htmlFor="description">
 						{t("description")}
 					</label>
 					<textarea
@@ -94,7 +105,7 @@ const AddGoal = () => {
 						maxLength={400}
 						placeholder={t("placeholderDesc")}
 						ref={register}
-						className="bg-background-lighter placeholder-gray-2 resize-none bg-gray-200 w-full rounded h-40 p-2"
+						className="placeholder-gray-2 w-full text-xl text-medium mb-3 rounded h-40 resize-none"
 					/>
 				</form>
 			</div>

@@ -36,3 +36,7 @@ export function useFunction<T>(name: string, data: any, enabled?: any) {
 		}
 	});
 }
+
+export function useFunctionCall<T>(name: string) {
+	return (data: any): Promise<T> => firebaseFetcher(name, data);
+}

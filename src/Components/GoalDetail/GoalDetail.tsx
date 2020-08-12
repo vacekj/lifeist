@@ -1,14 +1,15 @@
 import React, { ChangeEvent, useState } from "react";
 import { Link, useHistory, useParams } from "react-router-dom";
-import { useDocument, useDocumentData } from "react-firebase-hooks/firestore";
-import firebase, { User } from "firebase";
-import Goal from "../../Types/Goal.type";
+import { useDocument } from "react-firebase-hooks/firestore";
+import * as firebase from "firebase/app";
+import Goal from "Types/Goal.type";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAuthState } from "react-firebase-hooks/auth";
-import useTranslation from "../../Utils/useTranslation";
+import useTranslation from "Utils/useTranslation";
 import strings from "./strings";
-import { useFunction } from "../../Utils/useCloudFunction";
+import { useFunction, useFunctionCall } from "Utils/useCloudFunction";
+import { useEncryptedGoalData } from "../../Utils/useEncryption";
 
 interface SharedWithUser {
 	email: string;
@@ -47,12 +48,7 @@ const GoalDetail = () => {
 			.doc(id)
 	);
 
-	const [goalData] = useDocumentData<Goal>(
-		firebase
-			.firestore()
-			.collection("goals")
-			.doc(id)
-	);
+	const [goalData] = useEncryptedGoalData(goal?.id);
 
 	const sharedWithUserResponse = useFunction<SharedWithUser[]>(
 		"getUsersByUids",
@@ -62,7 +58,7 @@ const GoalDetail = () => {
 		goalData?.shared_with
 	);
 
-	const goalOwner = useFunction<User>(
+	const goalOwner = useFunction<firebase.User>(
 		"getUserByUid",
 		{ uid: goalData?.owner_uid },
 		goalData?.owner_uid
@@ -114,7 +110,7 @@ const GoalDetail = () => {
 						<h1 className="text-3xl font-medium">{goalData.title}</h1>
 						<p
 							className={
-								"text-gray-2 text-lg overflow-hidden mb-2" +
+								"text-gray-700 text-lg overflow-hidden mb-2" +
 								(!goalData.description.length ? "italic text-gray-3" : "")
 							}
 						>
@@ -143,8 +139,8 @@ const GoalDetail = () => {
 									className={
 										"mb-3 w-full " +
 										(goalData.completed
-											? "bg-green-1 hover:bg-green-1 text-black"
-											: "text-green-1")
+											? "text-black"
+											: "bg-green-200 hover:bg-green-300 text-green-800")
 									}
 									onClick={() => {
 										if (goalData?.completed) {
@@ -186,13 +182,16 @@ const GoalDetail = () => {
 								</Button>
 
 								<div className="flex">
-									<Button className="w-full" onClick={toggleArchiveGoal}>
-										<span className="text-xl text-gray-2">
+									<Button
+										className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700"
+										onClick={toggleArchiveGoal}
+									>
+										<span className="text-xl ">
 											{goalData.archived ? t("unarchive") : t("archive")}
 										</span>
 										{goalData.archived ? (
 											<svg
-												className="w-8 h-8 ml-1 text-gray-2"
+												className="w-8 h-8 ml-1"
 												fill="none"
 												strokeLinecap="round"
 												strokeLinejoin="round"
@@ -206,7 +205,7 @@ const GoalDetail = () => {
 											<svg
 												fill="currentColor"
 												viewBox="0 0 20 20"
-												className="w-8 h-8 ml-1 text-gray-2"
+												className="w-8 h-8 ml-1"
 											>
 												<path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
 												<path
@@ -219,12 +218,12 @@ const GoalDetail = () => {
 									</Button>
 
 									<Button
-										className="ml-3 w-full"
+										className="ml-3 w-full text-gray-600 bg-gray-200 hover:bg-gray-300"
 										onClick={() => history.push("/edit/" + id)}
 									>
-										<span className="text-xl text-gray-100">{t("edit")}</span>
+										<span className="text-xl">{t("edit")}</span>
 										<svg
-											className="w-8 h-8 ml-1 text-gray-100"
+											className="w-8 h-8 ml-1"
 											fill="currentColor"
 											viewBox="0 0 20 20"
 										>
@@ -248,34 +247,6 @@ const GoalDetail = () => {
 	);
 };
 
-function UserPill(props: { name: string; photoURL: string }) {
-	return (
-		<motion.p className="mr-2 mb-2 inline-flex flex-row items-center p-3 rounded-full bg-background-lighter mb-2">
-			<span>{props.name}</span>
-			{props.photoURL ? (
-				<img
-					referrerPolicy="no-referrer"
-					alt={props.name + " profile picture"}
-					src={props.photoURL}
-					className="h-6 w-6 rounded-full ml-1 border border-white"
-				/>
-			) : (
-				<svg
-					className="text-gray-3 w-6 h-6 rounded-full ml-1 border border-white"
-					fill="currentColor"
-					viewBox="0 0 20 20"
-				>
-					<path
-						d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
-						clipRule="evenodd"
-						fillRule="evenodd"
-					/>
-				</svg>
-			)}
-		</motion.p>
-	);
-}
-
 function ShareSection(props: {
 	onAdd: (uid: string) => any;
 	sharedWithUsers: SharedWithUser[];
@@ -284,20 +255,19 @@ function ShareSection(props: {
 	const [t] = useTranslation(strings);
 	const [peoplePickerOpen, setPeoplePickerOpen] = useState(false);
 	const [email, setEmail] = useState("");
-	const [enabled, setEnabled] = useState(false);
-	/*TODO: Dont use the hook here*/
-	const foundUser = useFunction<User>("getUserByEmail", { email }, enabled);
+	const findUser = useFunctionCall<firebase.User>("getUserByEmail");
+	const [foundUser, setFoundUser] = useState<firebase.User | null>(null);
+	const [loading, setLoading] = useState(false);
 
-	/*TODO: debounce this, or only call when user stops typing */
-	function onPickerChange(e: React.ChangeEvent<HTMLInputElement>) {
+	async function onPickerChange(e: React.ChangeEvent<HTMLInputElement>) {
 		const email = e.target.value;
 		setEmail(email);
 
 		const regex = new RegExp(
-			"(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21\x23-\x5b\x5d-\x7f]|\\\\[\x01-\x09\x0b\x0c\x0e-\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\x01-\x08\x0b\x0c\x0e-\x1f\x21-\x5a\x53-\x7f]|\\\\[\x01-\x09\x0b\x0c\x0e-\x7f])+)])"
+			/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 		);
 
-		if (!email.match(regex)) {
+		if (!regex.test(email)) {
 			return;
 		}
 
@@ -305,15 +275,20 @@ function ShareSection(props: {
 		if (props.sharedWithUsers.map(user => user.email).includes(email)) {
 			return;
 		}
-
-		setEnabled(true);
+		setFoundUser(null);
+		setLoading(true);
+		findUser({ email }).then(user => {
+			if (user.uid) {
+				setFoundUser(user);
+				setLoading(false);
+			}
+		});
 	}
 
 	return (
 		<>
 			{props.sharedWithUsers && (
 				<>
-					<div className="mt-5 mb-2">{t("sharedWith")}</div>
 					<div className="flex flex-col mb-5 items-start">
 						<div className="flex items-center flex-wrap w-full">
 							{props.sharedWithUsers.map(user => (
@@ -328,15 +303,14 @@ function ShareSection(props: {
 								<AnimatePresence>
 									{peoplePickerOpen && (
 										<motion.div
-											className="overflow-hidden pr-2"
+											className="overflow-hidden rounded-full mr-2 pr-2 bg-gray-200"
 											initial={{ width: 0 }}
 											animate={{ width: "100%" }}
 											exit={{ width: 0 }}
 										>
 											<motion.input
-												className="w-full mb-2 inline-flex flex-row items-center p-3 rounded
-										 bg-background-lighter text-white outline-none hover:bg-background-lightest"
-												type="text"
+												className="bg-gray-200 w-full p-2 inline-flex flex-row items-center rounded outline-none"
+												type="email"
 												value={email}
 												onChange={onPickerChange}
 											/>
@@ -346,31 +320,70 @@ function ShareSection(props: {
 
 								{!props.hideAddButton && (
 									<button
-										className="p-3 mb-2 flex items-center rounded bg-background-lighter outline-none"
+										className="px-3 py-2 mt-2 text-gray-800 text-lg rounded-full mb-2 flex items-center outline-none bg-gray-200 hover:bg-gray-300"
 										onClick={() => setPeoplePickerOpen(!peoplePickerOpen)}
 									>
 										{peoplePickerOpen ? t("cancel") : t("invite")}
+										{peoplePickerOpen ? (
+											<svg
+												className="ml-1 h-6 w-6"
+												fill="currentColor"
+												viewBox="0 0 20 20"
+											>
+												<path
+													fillRule="evenodd"
+													d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+													clipRule="evenodd"
+												/>
+											</svg>
+										) : (
+											<svg
+												className="ml-1 h-6 w-6"
+												fill="currentColor"
+												viewBox="0 0 20 20"
+											>
+												<path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
+											</svg>
+										)}
 									</button>
 								)}
 							</div>
 						</div>
 
 						<AnimatePresence>
-							{peoplePickerOpen && foundUser.data && (
+							{peoplePickerOpen && loading && (
+								<SkeletonTheme color={"#edf2f7"} highlightColor={"#cad3de"}>
+									<motion.div
+										initial={{ height: 0 }}
+										animate={{ height: "auto" }}
+										exit={{ height: 0 }}
+										className="w-32 mb-2 rounded-full overflow-hidden"
+									>
+										<Skeleton height={50} />
+									</motion.div>
+								</SkeletonTheme>
+							)}
+
+							{peoplePickerOpen && foundUser && (
 								<motion.div
+									onClick={() => {
+										if (foundUser) {
+											props.onAdd(foundUser.uid);
+											setFoundUser(null);
+										}
+									}}
 									initial={{ height: 0 }}
 									animate={{ height: "auto" }}
 									exit={{ height: 0 }}
-									className="w-full flex justify-between items-center p-3 rounded bg-background-lighter
-								 text-white outline-none hover:bg-background-lightest overflow-hidden"
+									className="cursor-pointer bg-gray-200 hover:bg-gray-300 flex justify-between items-center p-3 rounded-full
+						 outline-none overflow-hidden"
 								>
 									<div className="flex items-center">
-										{foundUser.data.photoURL ? (
+										{foundUser.photoURL ? (
 											<img
-												alt={
-													foundUser.data.displayName + " profile picture"
-												}
-												src={foundUser.data.photoURL}
+												referrerPolicy="no-referrer"
+												alt={foundUser.displayName + " profile picture"}
+												src={foundUser.photoURL}
 												className="inline h-6 w-6 rounded-full mr-1 border border-white"
 											/>
 										) : (
@@ -387,29 +400,8 @@ function ShareSection(props: {
 											</svg>
 										)}
 
-										<span>{foundUser.data.displayName}</span>
+										<span>{foundUser.displayName}</span>
 									</div>
-
-									<button
-										onClick={() => {
-											if (foundUser.data) {
-												props.onAdd(foundUser.data.uid);
-											}
-										}}
-										className=""
-									>
-										<svg
-											className="h-8 w-8 ml-1"
-											fill="currentColor"
-											viewBox="0 0 20 20"
-										>
-											<path
-												fillRule="evenodd"
-												d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
-												clipRule="evenodd"
-											/>
-										</svg>
-									</button>
 								</motion.div>
 							)}
 						</AnimatePresence>
@@ -426,7 +418,7 @@ function DeleteButton(props: { onDelete: () => any }) {
 
 	return (
 		<Button
-			className="w-full text-red-700 mt-3"
+			className="w-full text-red-700 hover:text-red-800 mt-3"
 			onClick={() => {
 				if (confirmShown) {
 					props.onDelete();
@@ -556,12 +548,59 @@ export function Button(props: React.ComponentProps<"button">) {
 		<button
 			{...props}
 			className={
-				"py-4 px-6 font-medium flex justify-center items-center rounded bg-background-lighter hover:bg-background-lightest " +
+				"py-4 px-6 font-medium flex justify-center items-center rounded " +
 				(props.className ?? "")
 			}
 		>
 			{props.children}
 		</button>
+	);
+}
+
+function UserPill(props: { name: string | null; photoURL: string | null }) {
+	const [imgNotFound, setImgNotFound] = useState(props.photoURL === null);
+
+	return (
+		<div className="flex text-lg rounded-full pl-2 mb-2 mr-2 items-center bg-gray-200 text-gray-800">
+			<span>{props.name}</span>
+			{imgNotFound ? (
+				<motion.img
+					initial={{
+						height: 0,
+						width: 0
+					}}
+					animate={{
+						height: 40,
+						width: 40
+					}}
+					referrerPolicy="no-referrer"
+					alt={(props.name ?? "User") + " avatar"}
+					onError={_ => setImgNotFound(true)}
+					src={props.photoURL ?? "404"}
+					className="text-transparent rounded-full ml-1 border-2 border-gray-200"
+				/>
+			) : (
+				<motion.svg
+					initial={{
+						height: 0,
+						width: 0
+					}}
+					animate={{
+						height: 40,
+						width: 40
+					}}
+					className="text-gray-600 bg-white rounded-full ml-1 border-2 border-gray-200"
+					fill="currentColor"
+					viewBox="0 0 20 20"
+				>
+					<path
+						d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+						clipRule="evenodd"
+						fillRule="evenodd"
+					/>
+				</motion.svg>
+			)}
+		</div>
 	);
 }
 

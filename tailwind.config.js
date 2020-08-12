@@ -11,6 +11,7 @@ module.exports = {
 			colors: {
 				"brand-primary": "#6059D0",
 				"brand-primary-darker": "#4544F5",
+				"brand-primary-lightest": "#b3b2fa",
 				/*Old colours*/
 				"background-primary": "#191919",
 				"background-lighter": "#232323",

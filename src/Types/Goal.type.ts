@@ -8,6 +8,7 @@ type Goal = {
 	archived: boolean;
 	completed: boolean;
 	shared_with?: string[];
+	encrypted?: boolean;
 	completed_on: firebase.firestore.Timestamp;
 	created_at: firebase.firestore.Timestamp;
 	updated_at: firebase.firestore.Timestamp;

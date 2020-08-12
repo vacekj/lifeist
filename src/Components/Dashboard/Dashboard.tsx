@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import * as firebase from "firebase";
 import { User } from "firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -12,6 +12,8 @@ import strings from "./strings";
 import Completed from "../../Illustrations/Completed";
 import _ from "lodash";
 import { useFunction } from "../../Utils/useCloudFunction";
+import { motion } from "framer-motion";
+import { decryptGoal } from "../../Utils/useEncryption";
 
 const Dashboard = () => {
 	const [error, setError] = useState<any>(null);
@@ -35,7 +37,14 @@ const Dashboard = () => {
 		{ idField: "uid" }
 	);
 
-	const allGoals = _.uniqBy(goals?.concat(sharedGoals ?? []), "uid");
+	const [allGoals, setAllGoals] = useState<Goal[]>([]);
+
+	useEffect(() => {
+		const allGoals = _.uniqBy(goals?.concat(sharedGoals ?? []), "uid").map(
+			goal => decryptGoal(goal, goal.owner_uid) as Goal
+		);
+		setAllGoals(allGoals);
+	}, [sharedGoals, goals]);
 
 	return (
 		<>
@@ -55,7 +64,7 @@ const Dashboard = () => {
 						Array(5)
 							.fill(0)
 							.map((_, i) => (
-								<SkeletonTheme key={i} color={"#232323"} highlightColor={"#444444"}>
+								<SkeletonTheme key={i} color={"#efefef"} highlightColor={"#dbdbdb"}>
 									<div className="mb-3">
 										<Skeleton height={74} />
 									</div>
@@ -63,7 +72,7 @@ const Dashboard = () => {
 							))}
 
 					{allGoals &&
-						allGoals?.length > 0 &&
+						allGoals.length > 0 &&
 						allGoals.map((g, i) => {
 							return (
 								<Item
@@ -140,7 +149,13 @@ function Item(
 	return (
 		<Link
 			to={"/goal/" + props.uid}
-			className={`relative flex justify-between items-center shadow-lg p-5 mb-3 rounded-lg`}
+			className={`${
+				props.variant === "completed"
+					? "bg-green-200 text-green-800"
+					: props.variant === "archived"
+					? "text-gray-600"
+					: ""
+			} relative flex justify-between items-center shadow-lg p-5 mb-3 rounded-lg`}
 		>
 			<div>
 				<div className="text-2xl font-medium">{props.title}</div>
@@ -161,16 +176,32 @@ function UserIcon(props: { name: string | null; photoURL: string | null }) {
 	const [imgNotFound, setImgNotFound] = useState(props.photoURL === null);
 
 	return !imgNotFound ? (
-		<img
+		<motion.img
+			initial={{
+				height: 0,
+				width: 0
+			}}
+			animate={{
+				height: 30,
+				width: 30
+			}}
 			referrerPolicy="no-referrer"
 			alt={(props.name ?? "User") + " avatar"}
 			onError={_ => setImgNotFound(true)}
 			src={props.photoURL ?? "404"}
-			className="h-8 w-8 -ml-3 rounded-full ml-1 border-2 border-gray-200"
+			className="-ml-3 text-transparent rounded-full ml-1 border-2 border-gray-200"
 		/>
 	) : (
-		<svg
-			className="text-gray-600 -ml-3 bg-white w-8 h-8 rounded-full ml-1 border-2 border-gray-200"
+		<motion.svg
+			initial={{
+				height: 0,
+				width: 0
+			}}
+			animate={{
+				height: 30,
+				width: 30
+			}}
+			className="text-gray-600 -ml-3 bg-white rounded-full ml-1 border-2 border-gray-200"
 			fill="currentColor"
 			viewBox="0 0 20 20"
 		>
@@ -179,7 +210,7 @@ function UserIcon(props: { name: string | null; photoURL: string | null }) {
 				clipRule="evenodd"
 				fillRule="evenodd"
 			/>
-		</svg>
+		</motion.svg>
 	);
 }
 

@@ -54,7 +54,7 @@ function BottomNavBar() {
 	];
 
 	return (
-		<div className="shadow-lg z-10 mx-auto  flex-shrink-0 w-full h-20 flex items-center justify-evenly">
+		<div className="shadow-lg fixed bottom-0 bg-white z-10 mx-auto flex-shrink-0 w-full h-20 flex items-center justify-evenly">
 			{tabs.map(t => (
 				<Tab key={t.url} {...t} />
 			))}

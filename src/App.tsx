@@ -29,18 +29,21 @@ function App() {
 	const [auth, loading] = useAuthState(firebase.auth());
 
 	return (
-		<div className="flex flex-col justify-between md:max-w-4xl md:m-auto h-screen">
+		/*TODO: bottom bar and main section fixed height and scrolling on main section*/
+		<div className="flex relative flex-col justify-between md:max-w-3xl md:m-auto h-screen">
 			<Router>
 				{!auth && !loading && window.location.pathname !== "/" && <Redirect to={"/"} />}
-				<Switch>
-					<Route path={"/dashboard"} children={<Dashboard />} />
-					<Route path={"/goal/:id"} children={<GoalDetail />} />
-					<Route path={"/add"} children={<AddGoal />} />
-					<Route path={"/edit/:id"} children={<EditGoal />} />
-					<Route path={"/profile"} children={<Profile />} />
-					<Route path={"/chat"} children={<Chat />} />
-					<Route path={"/"} children={<Home />} />
-				</Switch>
+				<div className="pb-16">
+					<Switch>
+						<Route path={"/dashboard"} children={<Dashboard />} />
+						<Route path={"/goal/:id"} children={<GoalDetail />} />
+						<Route path={"/add"} children={<AddGoal />} />
+						<Route path={"/edit/:id"} children={<EditGoal />} />
+						<Route path={"/profile"} children={<Profile />} />
+						<Route path={"/chat"} children={<Chat />} />
+						<Route path={"/"} children={<Home />} />
+					</Switch>
+				</div>
 				<BottomNavBar />
 			</Router>
 		</div>

@@ -37,6 +37,7 @@ const Profile = () => {
 				</Link>
 
 				<Button
+					className={"bg-gray-200 hover:bg-gray-300"}
 					onClick={() => {
 						firebase
 							.auth()
@@ -48,7 +49,7 @@ const Profile = () => {
 				>
 					{t("logOut")}{" "}
 					<svg
-						className="h-6 w-6 text-white ml-2"
+						className="h-6 w-6 text-gray-900 ml-2"
 						fill="none"
 						strokeLinecap="round"
 						strokeLinejoin="round"
@@ -80,24 +81,21 @@ const Profile = () => {
 					)}
 				</div>
 				{user?.metadata.creationTime && (
-					<div className="text-lg mt-3 text-gray-2">
+					<div className="text-lg mt-3 text-gray-700">
 						{t("registeredFor")}&nbsp;
-						<span className="text-white text-xl">{getTimeSinceRegister(user)}</span>
+						<span>{getTimeSinceRegister(user)}</span>
 					</div>
 				)}
 
 				<div className="flex justify-between w-full mt-4 items-center">
 					<div className="text-lg ">{t("language")}</div>
 					<select
+						defaultValue={changeLang()}
 						onChange={e => changeLang(e.target.value)}
-						className="bg-background-lighter px-4 py-2 rounded"
+						className="bg-gray-200 px-4 -pr-4 py-2 rounded"
 					>
-						<option value="cs" selected={changeLang() === "cs"}>
-							Česky
-						</option>
-						<option value="en" selected={changeLang() === "en"}>
-							English
-						</option>
+						<option value="cs">Česky</option>
+						<option value="en">English</option>
 					</select>
 				</div>
 			</div>
