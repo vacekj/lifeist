@@ -16,7 +16,7 @@ type AddFormData = {
 const AddGoal = () => {
 	const [t] = useTranslation(strings);
 	const history = useHistory();
-	const [user, loading, error] = useAuthState(firebase.auth());
+	const [user] = useAuthState(firebase.auth());
 
 	const formRef = useRef<HTMLFormElement>(null);
 	const { register, handleSubmit } = useForm();

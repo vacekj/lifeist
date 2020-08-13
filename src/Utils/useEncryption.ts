@@ -28,9 +28,20 @@ export function useEncryptedGoalData(
 
 export function decryptGoal(goal: Goal, uid: string) {
 	if (goal.encrypted) {
+		const decryptedMemories =
+			goal.memories?.length && goal.memories?.length > 0
+				? goal.memories.map(m => {
+						return {
+							photos: m.photos,
+							text: AES.decrypt(m.text, uid).toString(enc.Utf8)
+						};
+				  })
+				: [];
+
 		return Object.assign(goal, {
 			title: AES.decrypt(goal.title, uid).toString(enc.Utf8),
 			description: AES.decrypt(goal.description, uid).toString(enc.Utf8),
+			memories: decryptedMemories,
 			encrypted: false
 		});
 	} else {
