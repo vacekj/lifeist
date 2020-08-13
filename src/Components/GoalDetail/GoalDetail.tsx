@@ -78,6 +78,7 @@ const GoalDetail = () => {
 		goalData &&
 			goalData.memories &&
 			goalData.memories[0] &&
+			goalData.memories[0].photos &&
 			goalData.memories[0].photos.length > 0
 			? goalData.memories[0].photos
 			: null
@@ -128,7 +129,7 @@ const GoalDetail = () => {
 								(!goalData.description.length ? "italic text-gray-3" : "")
 							}
 						>
-							{goalData.description.length ? goalData.description : "No description"}
+							{goalData.description}
 						</p>
 
 						{goalOwner.data && goalOwner.data.uid !== auth?.uid && (
@@ -141,6 +142,8 @@ const GoalDetail = () => {
 							</p>
 						)}
 
+						<div className="mt-2" />
+
 						<ShareSection
 							onAdd={addPersonToGoal}
 							sharedWithUsers={sharedWithUserResponse.data ?? []}
@@ -148,15 +151,16 @@ const GoalDetail = () => {
 						/>
 
 						{goalData.memories && goalData.memories.length > 0 && (
-							<div>
+							<div className="mb-8">
 								<h1 className={"text-2xl font-medium"}>Memory</h1>
 								<div>{goalData.memories[0].text}</div>
 								<div>
-									{images.map(i => (
+									{images.map((i, key) => (
 										<img
+											key={key}
 											className="overflow-none max-w-1/2 h-24"
 											src={i}
-											alt={"Memory photo"}
+											alt={"Memory"}
 										/>
 									))}
 								</div>
@@ -169,7 +173,7 @@ const GoalDetail = () => {
 									className={
 										"mb-3 w-full " +
 										(goalData.completed
-											? "text-black"
+											? "text-black border-black border-solid border"
 											: "bg-green-200 hover:bg-green-300 text-green-800")
 									}
 									onClick={() => {
@@ -186,15 +190,15 @@ const GoalDetail = () => {
 									</span>
 									{goalData.completed ? (
 										<svg
-											className="w-8 h-8 ml-1"
-											fill="none"
-											strokeLinecap="round"
-											strokeLinejoin="round"
-											strokeWidth="2"
-											stroke="currentColor"
-											viewBox="0 0 24 24"
+											viewBox="0 0 20 20"
+											fill="currentColor"
+											className="x w-6 h-6"
 										>
-											<path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+											<path
+												fillRule="evenodd"
+												d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+												clipRule="evenodd"
+											/>
 										</svg>
 									) : (
 										<svg
@@ -486,7 +490,7 @@ function CompletedDialog(props: {
 	goalData: Goal;
 }) {
 	const formRef = useRef<HTMLFormElement>(null);
-	const { register, handleSubmit } = useForm();
+	const { register, handleSubmit, formState } = useForm();
 	const [t] = useTranslation(strings);
 
 	const storageRef = firebase.storage().ref();
@@ -494,22 +498,28 @@ function CompletedDialog(props: {
 	const images = useEncryptedImages(
 		props.goalData.memories &&
 			props.goalData.memories[0] &&
+			props.goalData.memories[0].photos &&
 			props.goalData.memories[0].photos.length > 0
 			? props.goalData.memories[0].photos
 			: null
 	);
+	formState.isDirty.valueOf();
 
 	async function onSubmit(data: { text: string }) {
 		if (!user) {
 			return;
 		}
 
+		if (!formState.isDirty) {
+			props.onSubmit();
+			return;
+		}
+
 		const encryptedText = AES.encrypt(data.text, user.uid).toString();
 		const originalMemory =
 			props.goalData.memories && props.goalData.memories[0] ? props.goalData.memories[0] : {};
-
 		await props.goal.ref.update({
-			memories: [{ ...originalMemory, text: encryptedText }]
+			memories: [{ ...(originalMemory ?? {}), text: encryptedText }]
 		});
 		props.onSubmit();
 	}
@@ -517,8 +527,8 @@ function CompletedDialog(props: {
 		if (!user) {
 			return;
 		}
-		const fileList = event.target.files; /* now you can work with the file list */
-		if (fileList !== null) {
+		const fileList = event.target.files;
+		if (fileList !== null && fileList.length > 0) {
 			const numFiles = fileList.length;
 			const encodedPhotos = await Promise.all(Array.from(fileList).map(getBase64));
 			const encryptedPhotos = encodedPhotos.map(photo =>
@@ -577,7 +587,7 @@ function CompletedDialog(props: {
 
 				<div className="p-5 z-50 opacity-100 bg-white w-full h-full rounded">
 					<h1 className="text-3xl font-medium">{t("congrats")}</h1>
-					{images.length > 0 && images.map(i => <img src={i} />)}
+					{images.length > 0 && images.map(i => <img alt={"Memory"} src={i} />)}
 					<form ref={formRef} className="mt-5 flex flex-col justify-center w-full">
 						<input type="file" multiple onChange={handleFiles} />
 
