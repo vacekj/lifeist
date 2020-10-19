@@ -1,6 +1,6 @@
 import React, { ChangeEvent, useRef, useState } from "react";
 import { Link, useHistory, useParams } from "react-router-dom";
-import { useDocument } from "react-firebase-hooks/firestore";
+import { useDocument, useDocumentData } from "react-firebase-hooks/firestore";
 import * as firebase from "firebase/app";
 import Goal from "Types/Goal.type";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
@@ -9,10 +9,9 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import useTranslation from "Utils/useTranslation";
 import strings from "./strings";
 import { useFunction, useFunctionCall } from "Utils/useCloudFunction";
-import { useEncryptedGoalData } from "../../Utils/useEncryption";
-import { AES } from "crypto-js";
 import { useForm } from "react-hook-form";
-import { useEncryptedImages } from "../../Utils/useEncryptedImages";
+import { format } from "date-fns";
+import { cs, enUS } from "date-fns/locale";
 
 interface SharedWithUser {
 	email: string;
@@ -22,7 +21,7 @@ interface SharedWithUser {
 }
 
 const GoalDetail = () => {
-	const [t] = useTranslation(strings);
+	const [t, lang] = useTranslation(strings);
 	let { id } = useParams();
 	const history = useHistory();
 	const [auth] = useAuthState(firebase.auth());
@@ -51,7 +50,7 @@ const GoalDetail = () => {
 			.doc(id)
 	);
 
-	const [goalData] = useEncryptedGoalData(goal?.id);
+	const [goalData] = useDocumentData<Goal>(goal?.ref);
 
 	const sharedWithUserResponse = useFunction<SharedWithUser[]>(
 		"getUsersByUids",
@@ -74,15 +73,14 @@ const GoalDetail = () => {
 	}
 
 	const [memoryOpen, setMemoryOpen] = useState(false);
-	const images = useEncryptedImages(
+	const images =
 		goalData &&
-			goalData.memories &&
-			goalData.memories[0] &&
-			goalData.memories[0].photos &&
-			goalData.memories[0].photos.length > 0
+		goalData.memories &&
+		goalData.memories[0] &&
+		goalData.memories[0].photos &&
+		goalData.memories[0].photos.length > 0
 			? goalData.memories[0].photos
-			: null
-	);
+			: null;
 
 	return (
 		<div>
@@ -131,6 +129,12 @@ const GoalDetail = () => {
 						>
 							{goalData.description}
 						</p>
+						<p>
+							{t("setOn")}{" "}
+							{format(goalData.created_at.toDate(), "do MMMM yyyy", {
+								locale: lang() === "cs" ? cs : enUS
+							})}
+						</p>
 
 						{goalOwner.data && goalOwner.data.uid !== auth?.uid && (
 							<p>
@@ -155,14 +159,15 @@ const GoalDetail = () => {
 								<h1 className={"text-2xl font-medium"}>Memory</h1>
 								<div>{goalData.memories[0].text}</div>
 								<div>
-									{images.map((i, key) => (
-										<img
-											key={key}
-											className="overflow-none max-w-1/2 h-24"
-											src={i}
-											alt={"Memory"}
-										/>
-									))}
+									{images &&
+										images.map((i, key) => (
+											<img
+												key={key}
+												className="overflow-none max-w-1/2 h-24"
+												src={i}
+												alt={"Memory"}
+											/>
+										))}
 								</div>
 							</div>
 						)}
@@ -495,15 +500,13 @@ function CompletedDialog(props: {
 
 	const storageRef = firebase.storage().ref();
 	const [user] = useAuthState(firebase.auth());
-	const images = useEncryptedImages(
+	const images =
 		props.goalData.memories &&
-			props.goalData.memories[0] &&
-			props.goalData.memories[0].photos &&
-			props.goalData.memories[0].photos.length > 0
+		props.goalData.memories[0] &&
+		props.goalData.memories[0].photos &&
+		props.goalData.memories[0].photos.length > 0
 			? props.goalData.memories[0].photos
-			: null
-	);
-	formState.isDirty.valueOf();
+			: null;
 
 	async function onSubmit(data: { text: string }) {
 		if (!user) {
@@ -515,11 +518,10 @@ function CompletedDialog(props: {
 			return;
 		}
 
-		const encryptedText = AES.encrypt(data.text, user.uid).toString();
 		const originalMemory =
 			props.goalData.memories && props.goalData.memories[0] ? props.goalData.memories[0] : {};
 		await props.goal.ref.update({
-			memories: [{ ...(originalMemory ?? {}), text: encryptedText }]
+			memories: [{ ...(originalMemory ?? {}), text: data.text }]
 		});
 		props.onSubmit();
 	}
@@ -531,14 +533,11 @@ function CompletedDialog(props: {
 		if (fileList !== null && fileList.length > 0) {
 			const numFiles = fileList.length;
 			const encodedPhotos = await Promise.all(Array.from(fileList).map(getBase64));
-			const encryptedPhotos = encodedPhotos.map(photo =>
-				AES.encrypt(photo, user.uid).toString()
-			);
 			if (numFiles > 0 && numFiles <= 5) {
 				const promises = Array.from(fileList).map((f, i) => {
 					return storageRef
 						.child(`user/${user?.uid}/${props.goalData.uid}/${f.name}`)
-						.putString(encryptedPhotos[i]);
+						.putString(encodedPhotos[i]);
 				});
 
 				Promise.all(promises).then(uploadedFiles => {
@@ -587,7 +586,7 @@ function CompletedDialog(props: {
 
 				<div className="p-5 z-50 opacity-100 bg-white w-full h-full rounded">
 					<h1 className="text-3xl font-medium">{t("congrats")}</h1>
-					{images.length > 0 && images.map(i => <img alt={"Memory"} src={i} />)}
+					{images && images.map(i => <img alt={"Memory"} src={i} />)}
 					<form ref={formRef} className="mt-5 flex flex-col justify-center w-full">
 						<input type="file" multiple onChange={handleFiles} />
 

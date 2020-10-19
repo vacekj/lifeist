@@ -1,5 +1,6 @@
 const strings: Record<string, any> = {
 	cs: {
+		setOn: "Zadáno",
 		setBy: "Cíl zadal:",
 		sharedWith: "Sdíleno s:",
 		invite: "Pozvat",
@@ -16,6 +17,7 @@ const strings: Record<string, any> = {
 		how: "Jak jste cíle dosáhli? Jak jste se cítili?"
 	},
 	en: {
+		setOn: "Set on",
 		setBy: "Goal set by:",
 		sharedWith: "Shared with:",
 		invite: "Invite",

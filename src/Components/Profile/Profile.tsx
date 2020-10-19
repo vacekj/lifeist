@@ -7,11 +7,19 @@ import { Button } from "../GoalDetail/GoalDetail";
 import useTranslation from "../../Utils/useTranslation";
 import csLocale from "date-fns/locale/cs";
 import strings from "./strings";
+import { useCollectionData } from "react-firebase-hooks/firestore";
+import Goal from "../../Types/Goal.type";
 
 const Profile = () => {
 	const [user] = useAuthState(firebase.auth());
 	const history = useHistory();
 	const [t, changeLang] = useTranslation(strings);
+	const [goals] = useCollectionData<Goal>(
+		firebase
+			.firestore()
+			.collection("goals")
+			.where("owner_uid", "==", user ? user?.uid : "")
+	);
 	const getTimeSinceRegister = (user: firebase.User) => {
 		if (user.metadata.creationTime) {
 			const registeredAt = new Date(user.metadata.creationTime);
@@ -72,7 +80,7 @@ const Profile = () => {
 					/>
 				)}
 				<div className="text-3xl">{user?.displayName ?? user?.email}</div>
-				<div className="text-gray-1">{user?.email}</div>
+				<div className="text-gray-600">{user?.email}</div>
 				<div>
 					{user && !user?.emailVerified && (
 						<button onClick={() => user?.sendEmailVerification()}>
@@ -80,12 +88,6 @@ const Profile = () => {
 						</button>
 					)}
 				</div>
-				{user?.metadata.creationTime && (
-					<div className="text-lg mt-3 text-gray-700">
-						{t("registeredFor")}&nbsp;
-						<span>{getTimeSinceRegister(user)}</span>
-					</div>
-				)}
 
 				<div className="flex justify-between w-full mt-4 items-center">
 					<div className="text-lg ">{t("language")}</div>
@@ -97,6 +99,30 @@ const Profile = () => {
 						<option value="cs">Česky</option>
 						<option value="en">English</option>
 					</select>
+				</div>
+
+				<div className="text-lg mt-3 text-gray-700 w-full">
+					{user?.metadata.creationTime && (
+						<>
+							<div>
+								{t("registeredFor")}&nbsp;
+								{getTimeSinceRegister(user)}
+							</div>
+						</>
+					)}
+					{goals && (
+						<>
+							<div>{goals?.length} total goals</div>
+							<div>{goals?.filter(g => g.completed).length} completed goals</div>
+							<div>
+								{
+									goals?.filter(g => g.shared_with && g.shared_with.length > 0)
+										.length
+								}{" "}
+								goals shared with others
+							</div>
+						</>
+					)}
 				</div>
 			</div>
 		</div>

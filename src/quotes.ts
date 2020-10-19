@@ -736,10 +736,6 @@ let quotes: { text: string; author: string | null }[] = [
 		author: "Virgil"
 	},
 	{
-		text: "I believe in one thing only, the power of human will.",
-		author: "Joseph Stalin"
-	},
-	{
 		text: "The best way out is always through.",
 		author: "Robert Frost"
 	},

@@ -34,7 +34,7 @@ const Home = () => {
 		<main className="w-full flex flex-col">
 			<nav className="mb-3 p-5 pl-6 text-center ">
 				<h1 className="text-5xl font-medium ">Lifeist</h1>
-				<h3 className="text-gray-2 italic tracking-wider">where dreams come true</h3>
+				<h3 className="italic tracking-wider">where dreams come true</h3>
 			</nav>
 
 			<section className="flex flex-col items-center justify-center">
@@ -69,7 +69,7 @@ const Home = () => {
 						)}
 						{/*Google*/}
 						<Button
-							className="w-64 flex items-center justify-center rounded bg-background-lighter px-6 py-4 text-xl"
+							className="w-64 flex items-center justify-center rounded border border-grey-200 px-6 py-4 text-xl"
 							onClick={() => {
 								firebase
 									.auth()
@@ -99,12 +99,12 @@ const Home = () => {
 									fill="#ea4335"
 								/>
 							</svg>
-							<span>Log in via Google</span>
+							<span>Sign in via Google</span>
 						</Button>
 
 						{/*Twitter*/}
 						<Button
-							className="w-64 flex mt-3 items-center justify-center rounded bg-background-lighter px-6 py-4 text-xl"
+							className="w-64 flex mt-3 items-center justify-center rounded border border-grey-200 px-6 py-4 text-xl"
 							onClick={() => {
 								firebase
 									.auth()
@@ -132,7 +132,7 @@ const Home = () => {
 
 						{/*Apple*/}
 						<Button
-							className="w-64 flex mt-3 items-center justify-center rounded bg-background-lighter px-6 py-4 text-xl"
+							className="w-64 flex mt-3 items-center justify-center rounded bg-black px-6 py-4 text-xl"
 							onClick={() => {
 								firebase
 									.auth()
@@ -151,7 +151,7 @@ const Home = () => {
 									fill="#FFF"
 								/>
 							</svg>
-							<span>Sign in with Apple</span>
+							<span className="text-white">Sign in with Apple</span>
 						</Button>
 					</>
 				)}
@@ -168,8 +168,8 @@ function Quote(
 ) {
 	return (
 		<div className="flex flex-col w-2/3 mb-8">
-			<div className="text-gray-1">{props.text}</div>
-			<div className="text-gray-2 self-end mt-2"> - {props.author}</div>
+			<div className="text-gray-700">{props.text}</div>
+			<div className="text-gray-600 self-end mt-2"> - {props.author}</div>
 		</div>
 	);
 }

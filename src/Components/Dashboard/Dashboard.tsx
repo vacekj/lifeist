@@ -13,7 +13,6 @@ import Completed from "../../Illustrations/Completed";
 import _ from "lodash";
 import { useFunction } from "../../Utils/useCloudFunction";
 import { motion } from "framer-motion";
-import { decryptGoal } from "../../Utils/useEncryption";
 
 const Dashboard = () => {
 	const [error, setError] = useState<any>(null);
@@ -40,9 +39,7 @@ const Dashboard = () => {
 	const [allGoals, setAllGoals] = useState<Goal[]>([]);
 
 	useEffect(() => {
-		const allGoals = _.uniqBy(goals?.concat(sharedGoals ?? []), "uid").map(
-			goal => decryptGoal(goal, goal.owner_uid) as Goal
-		);
+		const allGoals = _.uniqBy(goals?.concat(sharedGoals ?? []), "uid");
 		setAllGoals(allGoals);
 	}, [sharedGoals, goals]);
 
@@ -111,23 +108,17 @@ function Header() {
 
 			<Link to={"/add"} className={"focus:outline-none focus:bg-none"}>
 				<svg
-					width="25"
-					height="25"
-					viewBox="0 0 25 25"
-					className="h-12 w-12"
-					fill="none"
 					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					className="h-12 w-12"
+					stroke="currentColor"
 				>
-					<circle cx="12.5" cy="12.5" r="12.5" fill="#4544F5" />
-					<rect x="12" y="7" width="1" height="11" rx="0.5" fill="#EEEEEE" />
-					<rect
-						x="18"
-						y="12"
-						width="1"
-						height="11"
-						rx="0.5"
-						transform="rotate(90 18 12)"
-						fill="#EEEEEE"
+					<path
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						strokeWidth={2}
+						d="M12 6v6m0 0v6m0-6h6m-6 0H6"
 					/>
 				</svg>
 			</Link>
@@ -155,13 +146,19 @@ function Item(
 					: props.variant === "archived"
 					? "text-gray-600"
 					: ""
-			} relative flex justify-between items-center shadow-lg p-5 mb-3 rounded-lg`}
+			} relative flex justify-between bg-gray-100 items-center p-5 mb-3 rounded-lg`}
 		>
 			<div>
 				<div className="text-2xl font-medium">{props.title}</div>
-				<div className={"text-gray-2"}>{props.description}</div>
+				<div
+					className={`${
+						props.variant === "completed" ? "text-green-700" : "text-gray-600"
+					}`}
+				>
+					{props.description}
+				</div>
 			</div>
-			<div className="absolute top-0 right-0 flex items-center m-6">
+			<div className="flex items-center">
 				{[
 					sharedWithUserResponse.data?.map(p => (
 						<UserIcon key={p.uid} name={p.displayName} photoURL={p.photoURL} />
@@ -189,7 +186,7 @@ function UserIcon(props: { name: string | null; photoURL: string | null }) {
 			alt={(props.name ?? "User") + " avatar"}
 			onError={_ => setImgNotFound(true)}
 			src={props.photoURL ?? "404"}
-			className="-ml-3 text-transparent rounded-full ml-1 border-2 border-gray-200"
+			className="text-transparent rounded-full border-2 border-gray-200"
 		/>
 	) : (
 		<motion.svg

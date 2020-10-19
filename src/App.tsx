@@ -44,7 +44,8 @@ function App() {
 						<Route path={"/"} children={<Home />} />
 					</Switch>
 				</div>
-				<BottomNavBar />
+				rome
+				{auth?.uid && !loading && <BottomNavBar />}
 			</Router>
 		</div>
 	);

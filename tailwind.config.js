@@ -6,6 +6,9 @@ module.exports = {
 		"./src/**/*.js",
 		"./public/index.html"
 	],
+	experimental: {
+		uniformColorPalette: true
+	},
 	theme: {
 		extend: {
 			colors: {

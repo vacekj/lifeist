@@ -7,6 +7,7 @@ import useTranslation from "../../Utils/useTranslation";
 import strings from "./strings";
 import { AES } from "crypto-js";
 import { useAuthState } from "react-firebase-hooks/auth";
+import _ from "lodash";
 
 type AddFormData = {
 	title: string;
@@ -56,23 +57,11 @@ const AddGoal = () => {
 		<div className="flex flex-col">
 			{/* Header */}
 			<div className="flex items-center justify-between p-3">
-				<Link to={"/dashboard"}>
-					<svg fill="currentColor" className={"w-8 h-8"} viewBox="0 0 20 20">
-						<path
-							d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-							clipRule="evenodd"
-							fillRule="evenodd"
-						/>
-					</svg>
+				<Link className="font-medium" to={"/dashboard"}>
+					{t("back")}
 				</Link>
-				<button onClick={handleSubmit(onSubmit)}>
-					<svg className="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
-						<path
-							d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-							clipRule="evenodd"
-							fillRule="evenodd"
-						/>
-					</svg>
+				<button className="font-medium" onClick={handleSubmit(onSubmit)}>
+					{t("save")}
 				</button>
 			</div>
 
@@ -84,7 +73,7 @@ const AddGoal = () => {
 					onSubmit={handleSubmit(onSubmit)}
 					className="flex flex-col justify-center w-full"
 				>
-					<label className="text-gray-2" htmlFor="title">
+					<label className="text-gray-600 pl-1" htmlFor="title">
 						{t("title")}
 					</label>
 					<input
@@ -93,11 +82,11 @@ const AddGoal = () => {
 						required={true}
 						minLength={1}
 						maxLength={200}
-						placeholder={t("placeholderTitle")}
+						placeholder={_.sample((t("prompts") as unknown) as string[])}
 						ref={register}
-						className="placeholder-gray-2 w-full text-3xl text-medium mb-3 rounded h-10"
+						className="bg-gray-100 p-2 placeholder-gray-500 w-full text-3xl text-medium mb-3 rounded h-10"
 					/>
-					<label className="text-gray-2" htmlFor="description">
+					<label className="text-gray-600 pl-1" htmlFor="description">
 						{t("description")}
 					</label>
 					<textarea
@@ -105,7 +94,7 @@ const AddGoal = () => {
 						maxLength={400}
 						placeholder={t("placeholderDesc")}
 						ref={register}
-						className="placeholder-gray-2 w-full text-xl text-medium mb-3 rounded h-40 resize-none"
+						className="bg-gray-100 p-2 placeholder-gray-500 w-full text-xl text-medium mb-3 rounded h-40 resize-none"
 					/>
 				</form>
 			</div>
