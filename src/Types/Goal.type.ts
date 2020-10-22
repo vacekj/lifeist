@@ -21,7 +21,7 @@ type Memory = {
 	/***
 	 * Path to encrypted photo in Cloud Firestore
 	 ***/
-	photos: string[];
+	photos: { url: string; path: string }[];
 	created_at: firebase.firestore.Timestamp;
 	updated_at: firebase.firestore.Timestamp;
 };

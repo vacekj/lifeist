@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useRef, useState } from "react";
+import React, { useState } from "react";
 import { Link, useHistory, useParams } from "react-router-dom";
 import { useDocument, useDocumentData } from "react-firebase-hooks/firestore";
 import * as firebase from "firebase/app";
@@ -9,7 +9,6 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import useTranslation from "Utils/useTranslation";
 import strings from "./strings";
 import { useFunction, useFunctionCall } from "Utils/useCloudFunction";
-import { useForm } from "react-hook-form";
 import { format } from "date-fns";
 import { cs, enUS } from "date-fns/locale";
 
@@ -50,7 +49,9 @@ const GoalDetail = () => {
 			.doc(id)
 	);
 
-	const [goalData] = useDocumentData<Goal>(goal?.ref);
+	const [goalData] = useDocumentData<Goal>(goal?.ref, {
+		idField: "uid"
+	});
 
 	const sharedWithUserResponse = useFunction<SharedWithUser[]>(
 		"getUsersByUids",
@@ -72,7 +73,6 @@ const GoalDetail = () => {
 		} as Partial<Goal>);
 	}
 
-	const [memoryOpen, setMemoryOpen] = useState(false);
 	const images =
 		goalData &&
 		goalData.memories &&
@@ -84,16 +84,6 @@ const GoalDetail = () => {
 
 	return (
 		<div>
-			{memoryOpen && goalData && goal && (
-				<CompletedDialog
-					show={memoryOpen}
-					goalData={goalData}
-					goal={goal as firebase.firestore.DocumentSnapshot}
-					onSubmit={() => setMemoryOpen(false)}
-					onClose={() => setMemoryOpen(false)}
-				/>
-			)}
-
 			<div className="flex items-center justify-between p-5">
 				<Link to={"/dashboard"}>
 					<svg fill="currentColor" className="w-8 h-8" viewBox="0 0 20 20">
@@ -129,12 +119,22 @@ const GoalDetail = () => {
 						>
 							{goalData.description}
 						</p>
-						<p>
+
+						<p className="text-gray-600">
 							{t("setOn")}{" "}
 							{format(goalData.created_at.toDate(), "do MMMM yyyy", {
 								locale: lang() === "cs" ? cs : enUS
 							})}
 						</p>
+
+						{goalData.completed && goalData.completed_on && (
+							<p className="text-gray-600">
+								{t("completedOn")}{" "}
+								{format(goalData.completed_on.toDate(), "do MMMM yyyy", {
+									locale: lang() === "cs" ? cs : enUS
+								})}
+							</p>
+						)}
 
 						{goalOwner.data && goalOwner.data.uid !== auth?.uid && (
 							<p>
@@ -163,8 +163,8 @@ const GoalDetail = () => {
 										images.map((i, key) => (
 											<img
 												key={key}
-												className="overflow-none max-w-1/2 h-24"
-												src={i}
+												className="overflow-none max-w-1/2"
+												src={i.url}
 												alt={"Memory"}
 											/>
 										))}
@@ -182,12 +182,7 @@ const GoalDetail = () => {
 											: "bg-green-200 hover:bg-green-300 text-green-800")
 									}
 									onClick={() => {
-										if (goalData?.completed) {
-											toggleCompleteGoal();
-										} else {
-											toggleCompleteGoal();
-											setMemoryOpen(true);
-										}
+										toggleCompleteGoal();
 									}}
 								>
 									<span className="text-xl">
@@ -475,155 +470,6 @@ function DeleteButton(props: { onDelete: () => any }) {
 				/>
 			</svg>
 		</Button>
-	);
-}
-
-function getBase64(file: File): Promise<string> {
-	return new Promise((resolve, reject) => {
-		const reader = new FileReader();
-		reader.readAsDataURL(file);
-		reader.onload = () => resolve(reader.result as string);
-		reader.onerror = error => reject(error);
-	});
-}
-
-function CompletedDialog(props: {
-	show: boolean;
-	onSubmit: () => any;
-	onClose: () => any;
-	goal: firebase.firestore.DocumentSnapshot;
-	goalData: Goal;
-}) {
-	const formRef = useRef<HTMLFormElement>(null);
-	const { register, handleSubmit, formState } = useForm();
-	const [t] = useTranslation(strings);
-
-	const storageRef = firebase.storage().ref();
-	const [user] = useAuthState(firebase.auth());
-	const images =
-		props.goalData.memories &&
-		props.goalData.memories[0] &&
-		props.goalData.memories[0].photos &&
-		props.goalData.memories[0].photos.length > 0
-			? props.goalData.memories[0].photos
-			: null;
-
-	async function onSubmit(data: { text: string }) {
-		if (!user) {
-			return;
-		}
-
-		if (!formState.isDirty) {
-			props.onSubmit();
-			return;
-		}
-
-		const originalMemory =
-			props.goalData.memories && props.goalData.memories[0] ? props.goalData.memories[0] : {};
-		await props.goal.ref.update({
-			memories: [{ ...(originalMemory ?? {}), text: data.text }]
-		});
-		props.onSubmit();
-	}
-	async function handleFiles(event: ChangeEvent<HTMLInputElement>) {
-		if (!user) {
-			return;
-		}
-		const fileList = event.target.files;
-		if (fileList !== null && fileList.length > 0) {
-			const numFiles = fileList.length;
-			const encodedPhotos = await Promise.all(Array.from(fileList).map(getBase64));
-			if (numFiles > 0 && numFiles <= 5) {
-				const promises = Array.from(fileList).map((f, i) => {
-					return storageRef
-						.child(`user/${user?.uid}/${props.goalData.uid}/${f.name}`)
-						.putString(encodedPhotos[i]);
-				});
-
-				Promise.all(promises).then(uploadedFiles => {
-					return Promise.all(uploadedFiles.map(f => f.ref.getDownloadURL())).then(
-						downloadUrls => {
-							const originalMemory = props.goalData.memories
-								? props.goalData.memories[0]
-								: {};
-
-							props.goal.ref.update({
-								memories: [{ ...originalMemory, photos: downloadUrls }]
-							});
-						}
-					);
-				});
-			} else {
-				return;
-			}
-		} else {
-			return;
-		}
-	}
-
-	const CloseIcon = () => (
-		<svg
-			fill="currentColor"
-			className={"absolute cursor-pointer m-4 z-50 right-0 top-0 w-8 h-8 text-gray-700"}
-			viewBox="0 0 20 20"
-		>
-			<path
-				d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-				clipRule="evenodd"
-				fillRule="evenodd"
-			/>
-		</svg>
-	);
-
-	return (
-		<>
-			{/*Overlay*/}
-			<div className="absolute w-full left-0 top-0 h-full " />
-			<div className="absolute w-full left-0 top-0 z-50 h-full p-2 bg-transparent">
-				<div onClick={props.onClose}>
-					<CloseIcon />
-				</div>
-
-				<div className="p-5 z-50 opacity-100 bg-white w-full h-full rounded">
-					<h1 className="text-3xl font-medium">{t("congrats")}</h1>
-					{images && images.map(i => <img alt={"Memory"} src={i} />)}
-					<form ref={formRef} className="mt-5 flex flex-col justify-center w-full">
-						<input type="file" multiple onChange={handleFiles} />
-
-						<label className="text-gray-700 p-2" htmlFor="description">
-							{t("description")}
-						</label>
-						<textarea
-							ref={register}
-							id="description"
-							name="text"
-							maxLength={400}
-							defaultValue={
-								props.goalData.memories && props.goalData.memories[0]
-									? props.goalData.memories[0].text
-									: ""
-							}
-							placeholder={t("how")}
-							className="bg-gray-100 placeholder-gray-500 resize-none w-full rounded h-40 p-2"
-						/>
-					</form>
-
-					<Button
-						className={"mt-3 w-full bg-green-1 hover:bg-green-1 text-black"}
-						onClick={handleSubmit(onSubmit)}
-					>
-						<span className="text-xl">{t("complete")}</span>
-						<svg className="w-8 h-8 ml-1" fill="currentColor" viewBox="0 0 20 20">
-							<path
-								d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-								clipRule="evenodd"
-								fillRule="evenodd"
-							/>
-						</svg>
-					</Button>
-				</div>
-			</div>
-		</>
 	);
 }
 

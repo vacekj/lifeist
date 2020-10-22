@@ -20,6 +20,7 @@ const Profile = () => {
 			.collection("goals")
 			.where("owner_uid", "==", user ? user?.uid : "")
 	);
+
 	const getTimeSinceRegister = (user: firebase.User) => {
 		if (user.metadata.creationTime) {
 			const registeredAt = new Date(user.metadata.creationTime);
