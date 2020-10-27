@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import * as firebase from "firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { Link, useHistory } from "react-router-dom";
@@ -31,6 +31,12 @@ const Profile = () => {
 			);
 		}
 	};
+	const [percentage, setPercentage] = useState(0);
+	useEffect(() => {
+		if (goals) {
+			setPercentage(goals.filter(g => g.completed).length / goals.length);
+		}
+	});
 
 	return (
 		<div>
@@ -103,24 +109,36 @@ const Profile = () => {
 				</div>
 
 				<div className="text-lg mt-3 text-gray-700 w-full">
-					{user?.metadata.creationTime && (
-						<>
-							<div>
-								{t("registeredFor")}&nbsp;
-								{getTimeSinceRegister(user)}
-							</div>
-						</>
-					)}
 					{goals && (
 						<>
-							<div>{goals?.length} total goals</div>
-							<div>{goals?.filter(g => g.completed).length} completed goals</div>
+							<div className="rounded bg-gray-100 p-3 mb-3 relative">
+								<span
+									style={{
+										width: percentage * 100 + "%",
+										backdropFilter: "hue-rotate(270deg) saturate(15)"
+									}}
+									className=" z-10 absolute top-0 left-0 rounded h-full"
+								/>
+								<span className="relative">
+									{goals?.filter(g => g.completed).length} /{" "}
+								</span>
+								<span className="relative">{goals?.length} goals completed</span>
+							</div>
+
 							<div>
 								{
 									goals?.filter(g => g.shared_with && g.shared_with.length > 0)
 										.length
 								}{" "}
 								goals shared with others
+							</div>
+						</>
+					)}
+					{user?.metadata.creationTime && (
+						<>
+							<div>
+								{t("registeredFor")}&nbsp;
+								{getTimeSinceRegister(user)}
 							</div>
 						</>
 					)}

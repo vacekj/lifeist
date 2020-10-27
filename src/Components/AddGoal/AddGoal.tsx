@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import Goal from "../../Types/Goal.type";
 import useTranslation from "../../Utils/useTranslation";
 import strings from "./strings";
-import { AES } from "crypto-js";
 import { useAuthState } from "react-firebase-hooks/auth";
 import _ from "lodash";
 
@@ -30,16 +29,12 @@ const AddGoal = () => {
 			return;
 		}
 
-		const encryptedTitle = AES.encrypt(data.title, user.uid).toString();
-		const encryptedDesc = AES.encrypt(data.description, user.uid).toString();
-
 		firebase
 			.firestore()
 			.collection("goals")
 			.add({
-				title: encryptedTitle,
-				description: encryptedDesc,
-				encrypted: true,
+				title: data.title,
+				description: data.description,
 				owner_uid: firebase.auth().currentUser?.uid,
 				created_at: firebase.firestore.Timestamp.now(),
 				updated_at: firebase.firestore.Timestamp.now()
