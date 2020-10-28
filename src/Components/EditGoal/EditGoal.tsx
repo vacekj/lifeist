@@ -9,7 +9,7 @@ import strings from "./strings";
 
 const AddGoal = () => {
 	const [t] = useTranslation(strings);
-	const { id } = useParams();
+	const { id } = useParams<{ id: string }>();
 	const formRef = useRef<HTMLFormElement>(null);
 	const history = useHistory();
 	const [goal, loading] = useDocument(

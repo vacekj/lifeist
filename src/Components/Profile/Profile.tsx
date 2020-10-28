@@ -8,7 +8,7 @@ import useTranslation from "../../Utils/useTranslation";
 import csLocale from "date-fns/locale/cs";
 import strings from "./strings";
 import { useCollectionData } from "react-firebase-hooks/firestore";
-import Goal from "../../Types/Goal.type";
+import Goal from "Types/Goal.type";
 
 const Profile = () => {
 	const [user] = useAuthState(firebase.auth());
@@ -36,7 +36,7 @@ const Profile = () => {
 		if (goals) {
 			setPercentage(goals.filter(g => g.completed).length / goals.length);
 		}
-	});
+	}, [goals]);
 
 	return (
 		<div>
@@ -123,14 +123,6 @@ const Profile = () => {
 									{goals?.filter(g => g.completed).length} /{" "}
 								</span>
 								<span className="relative">{goals?.length} goals completed</span>
-							</div>
-
-							<div>
-								{
-									goals?.filter(g => g.shared_with && g.shared_with.length > 0)
-										.length
-								}{" "}
-								goals shared with others
 							</div>
 						</>
 					)}

@@ -12,7 +12,7 @@ import Profile from "./Components/Profile";
 import { useAuthState } from "react-firebase-hooks/auth";
 import firebaseConfig from "./firebase.config.js";
 import BottomNavBar from "./Components/BottomNavBar";
-import Chat from "./Components/Chat";
+import Community from "./Components/Community";
 
 declare global {
 	interface Window {
@@ -40,7 +40,7 @@ function App() {
 						<Route path={"/add"} children={<AddGoal />} />
 						<Route path={"/edit/:id"} children={<EditGoal />} />
 						<Route path={"/profile"} children={<Profile />} />
-						<Route path={"/chat"} children={<Chat />} />
+						<Route path={"/community"} children={<Community />} />
 						<Route path={"/"} children={<Home />} />
 					</Switch>
 				</div>

@@ -4,11 +4,11 @@ import { useDocument, useDocumentData } from "react-firebase-hooks/firestore";
 import * as firebase from "firebase/app";
 import Goal from "Types/Goal.type";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useAuthState } from "react-firebase-hooks/auth";
 import useTranslation from "Utils/useTranslation";
 import strings from "./strings";
-import { useFunction, useFunctionCall } from "Utils/useCloudFunction";
+import { useFunction } from "Utils/useCloudFunction";
 import { format } from "date-fns";
 import { cs, enUS } from "date-fns/locale";
 
@@ -21,7 +21,7 @@ interface SharedWithUser {
 
 const GoalDetail = () => {
 	const [t, lang] = useTranslation(strings);
-	let { id } = useParams();
+	let { id } = useParams<{ id: string }>();
 	const history = useHistory();
 	const [auth] = useAuthState(firebase.auth());
 
@@ -53,34 +53,11 @@ const GoalDetail = () => {
 		idField: "uid"
 	});
 
-	const sharedWithUserResponse = useFunction<SharedWithUser[]>(
-		"getUsersByUids",
-		{
-			uids: goalData?.shared_with
-		},
-		goalData?.shared_with
-	);
-
 	const goalOwner = useFunction<firebase.User>(
 		"getUserByUid",
 		{ uid: goalData?.owner_uid },
 		goalData?.owner_uid
 	);
-
-	function addPersonToGoal(uid: string) {
-		goal?.ref.update({
-			shared_with: [...(goalData?.shared_with ?? []), uid]
-		} as Partial<Goal>);
-	}
-
-	const images =
-		goalData &&
-		goalData.memories &&
-		goalData.memories[0] &&
-		goalData.memories[0].photos &&
-		goalData.memories[0].photos.length > 0
-			? goalData.memories[0].photos
-			: null;
 
 	return (
 		<div>
@@ -147,30 +124,6 @@ const GoalDetail = () => {
 						)}
 
 						<div className="mt-2" />
-
-						<ShareSection
-							onAdd={addPersonToGoal}
-							sharedWithUsers={sharedWithUserResponse.data ?? []}
-							hideAddButton={goalData.owner_uid !== auth?.uid}
-						/>
-
-						{goalData.memories && goalData.memories.length > 0 && (
-							<div className="mb-8">
-								<h1 className={"text-2xl font-medium"}>Memory</h1>
-								<div>{goalData.memories[0].text}</div>
-								<div>
-									{images &&
-										images.map((i, key) => (
-											<img
-												key={key}
-												className="overflow-none max-w-1/2"
-												src={i.url}
-												alt={"Memory"}
-											/>
-										))}
-								</div>
-							</div>
-						)}
 
 						{goalData.owner_uid === auth?.uid && (
 							<div className="w-full my-3">
@@ -280,171 +233,6 @@ const GoalDetail = () => {
 		</div>
 	);
 };
-
-function ShareSection(props: {
-	onAdd: (uid: string) => any;
-	sharedWithUsers: SharedWithUser[];
-	hideAddButton?: boolean;
-}) {
-	const [t] = useTranslation(strings);
-	const [peoplePickerOpen, setPeoplePickerOpen] = useState(false);
-	const [email, setEmail] = useState("");
-	const findUser = useFunctionCall<firebase.User>("getUserByEmail");
-	const [foundUser, setFoundUser] = useState<firebase.User | null>(null);
-	const [loading, setLoading] = useState(false);
-
-	async function onPickerChange(e: React.ChangeEvent<HTMLInputElement>) {
-		const email = e.target.value;
-		setEmail(email);
-
-		const regex = new RegExp(
-			/^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-		);
-
-		if (!regex.test(email)) {
-			return;
-		}
-
-		/* Don't share with users already shared with */
-		if (props.sharedWithUsers.map(user => user.email).includes(email)) {
-			return;
-		}
-		setFoundUser(null);
-		setLoading(true);
-		findUser({ email }).then(user => {
-			if (user.uid) {
-				setFoundUser(user);
-				setLoading(false);
-			}
-		});
-	}
-
-	return (
-		<>
-			{props.sharedWithUsers && (
-				<>
-					<div className="flex flex-col mb-5 items-start">
-						<div className="flex items-center flex-wrap w-full">
-							{props.sharedWithUsers.map(user => (
-								<UserPill
-									name={user.displayName ?? ""}
-									key={user.uid}
-									photoURL={user.photoURL ?? ""}
-								/>
-							))}
-
-							<div className="flex items-center w-full">
-								<AnimatePresence>
-									{peoplePickerOpen && (
-										<motion.div
-											className="overflow-hidden rounded-full mr-2 pr-2 bg-gray-200"
-											initial={{ width: 0 }}
-											animate={{ width: "100%" }}
-											exit={{ width: 0 }}
-										>
-											<motion.input
-												className="bg-gray-200 w-full p-2 inline-flex flex-row items-center rounded outline-none"
-												type="email"
-												value={email}
-												onChange={onPickerChange}
-											/>
-										</motion.div>
-									)}
-								</AnimatePresence>
-
-								{!props.hideAddButton && (
-									<button
-										className="px-3 py-2 mt-2 text-gray-800 text-lg rounded-full mb-2 flex items-center outline-none bg-gray-200 hover:bg-gray-300"
-										onClick={() => setPeoplePickerOpen(!peoplePickerOpen)}
-									>
-										{peoplePickerOpen ? t("cancel") : t("invite")}
-										{peoplePickerOpen ? (
-											<svg
-												className="ml-1 h-6 w-6"
-												fill="currentColor"
-												viewBox="0 0 20 20"
-											>
-												<path
-													fillRule="evenodd"
-													d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-													clipRule="evenodd"
-												/>
-											</svg>
-										) : (
-											<svg
-												className="ml-1 h-6 w-6"
-												fill="currentColor"
-												viewBox="0 0 20 20"
-											>
-												<path d="M8 9a3 3 0 100-6 3 3 0 000 6zM8 11a6 6 0 016 6H2a6 6 0 016-6zM16 7a1 1 0 10-2 0v1h-1a1 1 0 100 2h1v1a1 1 0 102 0v-1h1a1 1 0 100-2h-1V7z" />
-											</svg>
-										)}
-									</button>
-								)}
-							</div>
-						</div>
-
-						<AnimatePresence>
-							{peoplePickerOpen && loading && (
-								<SkeletonTheme color={"#edf2f7"} highlightColor={"#cad3de"}>
-									<motion.div
-										initial={{ height: 0 }}
-										animate={{ height: "auto" }}
-										exit={{ height: 0 }}
-										className="w-32 mb-2 rounded-full overflow-hidden"
-									>
-										<Skeleton height={50} />
-									</motion.div>
-								</SkeletonTheme>
-							)}
-
-							{peoplePickerOpen && foundUser && (
-								<motion.div
-									onClick={() => {
-										if (foundUser) {
-											props.onAdd(foundUser.uid);
-											setFoundUser(null);
-										}
-									}}
-									initial={{ height: 0 }}
-									animate={{ height: "auto" }}
-									exit={{ height: 0 }}
-									className="cursor-pointer bg-gray-200 hover:bg-gray-300 flex justify-between items-center p-3 rounded-full
-						 outline-none overflow-hidden"
-								>
-									<div className="flex items-center">
-										{foundUser.photoURL ? (
-											<img
-												referrerPolicy="no-referrer"
-												alt={foundUser.displayName + " profile picture"}
-												src={foundUser.photoURL}
-												className="inline h-6 w-6 rounded-full mr-1 border border-white"
-											/>
-										) : (
-											<svg
-												className="inline text-gray-3 w-6 h-6 rounded-full mr-1 border border-white"
-												fill="currentColor"
-												viewBox="0 0 20 20"
-											>
-												<path
-													d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
-													clipRule="evenodd"
-													fillRule="evenodd"
-												/>
-											</svg>
-										)}
-
-										<span>{foundUser.displayName}</span>
-									</div>
-								</motion.div>
-							)}
-						</AnimatePresence>
-					</div>
-				</>
-			)}
-		</>
-	);
-}
 
 function DeleteButton(props: { onDelete: () => any }) {
 	const [confirmShown, setConfirmShown] = useState(false);

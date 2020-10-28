@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import * as firebase from "firebase";
 import { User } from "firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
@@ -10,8 +10,6 @@ import { useCollectionData } from "react-firebase-hooks/firestore";
 import useTranslation from "../../Utils/useTranslation";
 import strings from "./strings";
 import Completed from "../../Illustrations/Completed";
-import _ from "lodash";
-import { useFunction } from "../../Utils/useCloudFunction";
 import { motion } from "framer-motion";
 
 const Dashboard = () => {
@@ -27,21 +25,6 @@ const Dashboard = () => {
 			.where("owner_uid", "==", user?.uid ?? ""),
 		{ idField: "uid" }
 	);
-
-	const [sharedGoals] = useCollectionData<Goal>(
-		firebase
-			.firestore()
-			.collection("goals")
-			.where("shared_with", "array-contains", user?.uid ?? "invalid"),
-		{ idField: "uid" }
-	);
-
-	const [allGoals, setAllGoals] = useState<Goal[]>([]);
-
-	useEffect(() => {
-		const allGoals = _.uniqBy(goals?.concat(sharedGoals ?? []), "uid");
-		setAllGoals(allGoals);
-	}, [sharedGoals, goals]);
 
 	return (
 		<>
@@ -68,9 +51,9 @@ const Dashboard = () => {
 								</SkeletonTheme>
 							))}
 
-					{allGoals &&
-						allGoals.length > 0 &&
-						allGoals.map((g, i) => {
+					{goals &&
+						goals.length > 0 &&
+						goals.map((g, i) => {
 							return (
 								<Item
 									variant={
@@ -129,14 +112,6 @@ function Header() {
 function Item(
 	props: React.ComponentProps<"div"> & Goal & { variant?: "normal" | "completed" | "archived" }
 ) {
-	const sharedWithUserResponse = useFunction<User[]>(
-		"getUsersByUids",
-		{
-			uids: props.shared_with
-		},
-		props.shared_with
-	);
-
 	return (
 		<Link
 			to={"/goal/" + props.uid}
@@ -157,13 +132,6 @@ function Item(
 				>
 					{props.description}
 				</div>
-			</div>
-			<div className="flex items-center">
-				{[
-					sharedWithUserResponse.data?.map(p => (
-						<UserIcon key={p.uid} name={p.displayName} photoURL={p.photoURL} />
-					))
-				]}
 			</div>
 		</Link>
 	);
