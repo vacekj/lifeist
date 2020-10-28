@@ -109,7 +109,7 @@ function Header() {
 	);
 }
 
-function Item(
+export function Item(
 	props: React.ComponentProps<"div"> & Goal & { variant?: "normal" | "completed" | "archived" }
 ) {
 	return (
@@ -178,5 +178,4 @@ function UserIcon(props: { name: string | null; photoURL: string | null }) {
 		</motion.svg>
 	);
 }
-
 export default Dashboard;
