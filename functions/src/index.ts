@@ -112,3 +112,20 @@ app.post("/getUsersByUids", async (req, res) => {
 });
 
 exports.app = functions.region("europe-west1").https.onRequest(app);
+
+exports.addProfileForUser = functions.auth.user().onCreate(async u => {
+	try {
+		return await admin
+			.firestore()
+			.collection("profiles")
+			.doc(u.uid)
+			.set({
+				instagram: "",
+				email: u.email,
+				dipslayName: u.displayName,
+				photoURL: u.photoURL
+			});
+	} catch {
+		return console.error("Failed to create profile for user", u.toJSON());
+	}
+});
