@@ -5,7 +5,6 @@ import Goal from "Types/Goal.type";
 import useTranslation from "Utils/useTranslation";
 import strings from "./strings";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
 
 export function UserPill(props: { name: string | null; photoURL: string | null }) {
 	const [imgNotFound, setImgNotFound] = useState(props.photoURL === null);
@@ -13,32 +12,16 @@ export function UserPill(props: { name: string | null; photoURL: string | null }
 	return (
 		<div className="flex text-lg rounded-full my-2 items-center text-gray-800">
 			{imgNotFound ? (
-				<motion.img
-					initial={{
-						height: 0,
-						width: 0
-					}}
-					animate={{
-						height: 40,
-						width: 40
-					}}
+				<img
 					referrerPolicy="no-referrer"
 					alt={(props.name ?? "User") + " avatar"}
 					onError={_ => setImgNotFound(true)}
 					src={props.photoURL ?? "404"}
-					className="text-transparent rounded-full mr-1 border-2 border-gray-200"
+					className="h-10 w-10 text-transparent rounded-full mr-1 border-2 border-gray-200"
 				/>
 			) : (
-				<motion.svg
-					initial={{
-						height: 0,
-						width: 0
-					}}
-					animate={{
-						height: 40,
-						width: 40
-					}}
-					className="text-gray-600 bg-white rounded-full mr-1 border-2 border-gray-200"
+				<svg
+					className="h-10 w-10 text-gray-600 bg-white rounded-full mr-1 border-2 border-gray-200"
 					fill="currentColor"
 					viewBox="0 0 20 20"
 				>
@@ -47,7 +30,7 @@ export function UserPill(props: { name: string | null; photoURL: string | null }
 						clipRule="evenodd"
 						fillRule="evenodd"
 					/>
-				</motion.svg>
+				</svg>
 			)}
 			<span>{props.name}</span>
 		</div>
@@ -76,13 +59,16 @@ const Community = () => {
 		firebase
 			.firestore()
 			.collection("goals")
-			.where("public", "==", true)
+			.where("public", "==", true),
+		{
+			idField: "uid"
+		}
 	);
 	const [t] = useTranslation(strings);
 	return (
 		<div className="flex flex-col h-full p-3">
 			<h1 className={"text-5xl font-bold p-2 pl-3"}>Community</h1>
-			{publicGoals && publicGoals.map(g => <CommItem {...g} />)}
+			{publicGoals && publicGoals.map(g => <CommItem {...g} key={g.uid} />)}
 		</div>
 	);
 };

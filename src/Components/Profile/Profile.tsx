@@ -4,11 +4,12 @@ import { useAuthState } from "react-firebase-hooks/auth";
 import { Link, useHistory } from "react-router-dom";
 import { formatDistance } from "date-fns";
 import { Button } from "../GoalDetail/GoalDetail";
-import useTranslation from "../../Utils/useTranslation";
+import useTranslation from "Utils/useTranslation";
 import csLocale from "date-fns/locale/cs";
 import strings from "./strings";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import Goal from "Types/Goal.type";
+import { LiveInput } from "../../Utils/LiveInput";
 
 const Profile = () => {
 	const [user] = useAuthState(firebase.auth());
@@ -78,35 +79,28 @@ const Profile = () => {
 			</div>
 
 			<div className="flex flex-col items-center justify-center p-5">
-				{user?.photoURL && (
+				{user?.photoURL ? (
 					<img
 						referrerPolicy="no-referrer"
 						className="mb-3 w-24 h-24 rounded-full border-background-lightest border-2"
 						src={user?.photoURL}
 						alt="Profile"
 					/>
+				) : (
+					<svg
+						className="mb-3 h-24 w-24 text-gray-600 bg-white rounded-full mr-1 border-2 border-gray-200"
+						fill="currentColor"
+						viewBox="0 0 20 20"
+					>
+						<path
+							d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+							clipRule="evenodd"
+							fillRule="evenodd"
+						/>
+					</svg>
 				)}
 				<div className="text-3xl">{user?.displayName ?? user?.email}</div>
 				<div className="text-gray-600">{user?.email}</div>
-				<div>
-					{user && !user?.emailVerified && (
-						<button onClick={() => user?.sendEmailVerification()}>
-							Verify your email
-						</button>
-					)}
-				</div>
-
-				<div className="flex justify-between w-full mt-4 items-center">
-					<div className="text-lg ">{t("language")}</div>
-					<select
-						defaultValue={changeLang()}
-						onChange={e => changeLang(e.target.value)}
-						className="bg-gray-200 px-4 -pr-4 py-2 rounded"
-					>
-						<option value="cs">Česky</option>
-						<option value="en">English</option>
-					</select>
-				</div>
 
 				<div className="text-lg mt-3 text-gray-700 w-full">
 					{goals && (
@@ -135,6 +129,33 @@ const Profile = () => {
 						</>
 					)}
 				</div>
+
+				<div className="flex justify-between w-full mt-4 items-center">
+					<div className="text-lg ">{t("language")}</div>
+					<select
+						defaultValue={changeLang()}
+						onChange={e => changeLang(e.target.value)}
+						className="bg-gray-200 px-4 -pr-4 py-2 rounded"
+					>
+						<option value="cs">Česky</option>
+						<option value="en">English</option>
+					</select>
+				</div>
+
+				{user && (
+					<div className="flex justify-between w-full mt-4 items-center">
+						<label htmlFor="instagram">Instagram</label>
+						<LiveInput
+							className="bg-gray-200 px-4 -pr-4 py-2 rounded"
+							name="instagram"
+							docRef={firebase
+								.firestore()
+								.collection("profiles")
+								.doc(user?.uid)}
+							field={"instagram"}
+						/>
+					</div>
+				)}
 			</div>
 		</div>
 	);
