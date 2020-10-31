@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-import * as firebase from "firebase";
-import { User } from "firebase";
+import firebase from "firebase/app";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { Link } from "react-router-dom";
 import Goal from "../../Types/Goal.type";

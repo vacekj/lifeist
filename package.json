@@ -2,12 +2,22 @@
   "name": "lifeist",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject",
+    "build:styles": "postcss src/tailwind.css -o src/styles.css",
+    "prebuild": "NODE_ENV=production yarn build:styles",
+    "prestart": "yarn build:styles",
+    "emu": "firebase emulators:start"
+  },
   "dependencies": {
     "autoprefixer": "^9.7.4",
     "create-react-component-folder": "0.1.30",
     "date-fns": "^2.14.0",
-    "firebase": "^7.14.4",
-    "firebase-admin": "^8.12.1",
+    "firebase": "^8.0.0",
+    "firebase-admin": "^9.3.0",
     "firebase-functions": "^3.6.1",
     "framer-motion": "^1.11.0",
     "lodash": "^4.17.19",
@@ -24,15 +34,6 @@
     "react-spinners": "^0.8.3",
     "rosetta": "^1.1.0",
     "use-local-storage-state": "^4.0.0"
-  },
-  "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "build:styles": "postcss src/tailwind.css -o src/styles.css",
-    "prebuild": "NODE_ENV=production yarn build:styles",
-    "prestart": "yarn build:styles"
   },
   "eslintConfig": {
     "extends": "react-app"

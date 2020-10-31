@@ -67,7 +67,7 @@ const Community = () => {
 	const [t] = useTranslation(strings);
 	return (
 		<div className="flex flex-col h-full p-3">
-			<h1 className={"text-5xl font-bold p-2 pl-3"}>Community</h1>
+			<h1 className={"text-5xl font-bold p-2 pl-3 "}>Community</h1>
 			{publicGoals && publicGoals.map(g => <CommItem {...g} key={g.uid} />)}
 		</div>
 	);

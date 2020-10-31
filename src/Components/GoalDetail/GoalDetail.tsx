@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useHistory, useParams } from "react-router-dom";
 import { useDocument, useDocumentData } from "react-firebase-hooks/firestore";
-import * as firebase from "firebase/app";
+import firebase from "firebase/app";
 import Goal from "Types/Goal.type";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import { motion } from "framer-motion";
@@ -11,13 +11,6 @@ import strings from "./strings";
 import { useFunction } from "Utils/useCloudFunction";
 import { format } from "date-fns";
 import { cs, enUS } from "date-fns/locale";
-
-interface SharedWithUser {
-	email: string;
-	photoURL: string;
-	displayName: string;
-	uid: string;
-}
 
 const GoalDetail = () => {
 	const [t, lang] = useTranslation(strings);

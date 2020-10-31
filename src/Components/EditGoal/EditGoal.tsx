@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import * as firebase from "firebase";
+import firebase from "firebase";
 import { useHistory, useParams } from "react-router-dom";
 import Goal from "Types/Goal.type";
 import { useDocument } from "react-firebase-hooks/firestore";

@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import * as firebase from "firebase";
+import firebase from "firebase";
 import { Link, useHistory } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import Goal from "Types/Goal.type";
@@ -38,7 +38,14 @@ const AddGoal = () => {
 				owner_uid: firebase.auth().currentUser?.uid,
 				created_at: firebase.firestore.Timestamp.now(),
 				updated_at: firebase.firestore.Timestamp.now(),
-				user: firebase.auth().currentUser
+				user: _.pick(firebase.auth().currentUser?.toJSON(), [
+					"displayName",
+					"uid",
+					"photoURL",
+					"createdAt",
+					"lastLoginAt",
+					"email"
+				])
 			} as Partial<Goal>)
 			.then(() => {
 				history.push("/dashboard");

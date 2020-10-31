@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import * as firebase from "firebase";
+import firebase from "firebase";
 import { useHistory, useLocation } from "react-router-dom";
 import { Button } from "../GoalDetail/GoalDetail";
 import { useAuthState } from "react-firebase-hooks/auth";

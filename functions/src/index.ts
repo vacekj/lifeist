@@ -1,6 +1,7 @@
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
 import * as express from "express";
+import _ = require("lodash");
 
 admin.initializeApp();
 const cookieParser = require("cookie-parser")();
@@ -121,11 +122,10 @@ exports.addProfileForUser = functions.auth.user().onCreate(async u => {
 			.doc(u.uid)
 			.set({
 				instagram: "",
-				email: u.email,
-				dipslayName: u.displayName,
-				photoURL: u.photoURL
+				..._.pick(u, ["displayName", "uid", "photoURL", "createdAt", "email"])
 			});
 	} catch {
-		return console.error("Failed to create profile for user", u.toJSON());
+		console.error("Failed to create profile for user", u.toJSON());
+		return;
 	}
 });
