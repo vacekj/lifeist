@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import firebase from "firebase";
+import firebase from "firebase/app";
+import "firebase/firestore";
 import { useDocumentData } from "react-firebase-hooks/firestore";
 
 export function LiveInput<T>(
@@ -14,7 +15,7 @@ export function LiveInput<T>(
 		if (data !== undefined) {
 			setValue(data[props.field]);
 		}
-	}, [data, loading, error]);
+	}, [data, loading, error, props.field]);
 	return (
 		<input
 			className={props.className}

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useCollectionData } from "react-firebase-hooks/firestore";
-import firebase from "firebase";
+import firebase from "firebase/app";
+import "firebase/firestore";
 import Goal from "Types/Goal.type";
 import useTranslation from "Utils/useTranslation";
 import strings from "./strings";

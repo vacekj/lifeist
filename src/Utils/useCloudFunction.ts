@@ -1,4 +1,6 @@
-import firebase from "firebase";
+import firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/functions";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useQuery } from "react-query";
 

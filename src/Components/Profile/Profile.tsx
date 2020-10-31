@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
-import firebase from "firebase";
+import firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/firestore";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { Link, useHistory } from "react-router-dom";
 import { formatDistance } from "date-fns";

@@ -3,8 +3,12 @@ import { BrowserRouter as Router, Redirect, Route, Switch } from "react-router-d
 import Home from "./Components/Home";
 import Dashboard from "./Components/Dashboard";
 import AddGoal from "./Components/AddGoal";
-import firebase from "firebase";
+import firebase from "firebase/app";
+import "firebase/auth";
+import "firebase/functions";
 import "firebase/performance";
+import "firebase/firestore";
+import "firebase/analytics";
 import EditGoal from "./Components/EditGoal";
 import GoalDetail from "./Components/GoalDetail";
 import "./App.css";
@@ -27,8 +31,9 @@ function App() {
 	}
 	if (window.location.hostname === "localhost") {
 		firebase.firestore().useEmulator("localhost", 8080);
-		firebase.auth().useEmulator("https://localhost:9099");
+		firebase.auth().useEmulator("http://localhost:9099");
 		firebase.functions().useEmulator("localhost", 5001);
+		console.info("Using Firebase Emulators");
 	}
 
 	const [auth, loading] = useAuthState(firebase.auth());
