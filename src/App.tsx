@@ -29,6 +29,7 @@ function App() {
 		firebase.performance();
 		firebase.analytics();
 	}
+
 	if (window.location.hostname === "localhost") {
 		firebase.firestore().useEmulator("localhost", 8080);
 		firebase.auth().useEmulator("http://localhost:9099");
