@@ -49,7 +49,9 @@ export function CommItem(props: React.ComponentProps<"div"> & Goal) {
 			<div>
 				<div className="text-2xl font-medium">{props.title}</div>
 				<div className={"text-gray-600"}>{props.description}</div>
-				<UserPill name={props.owner.displayName} photoURL={props.owner.photoURL} />
+				<a href={"/profile/" + props.owner.uid}>
+					<UserPill name={props.owner.displayName} photoURL={props.owner.photoURL} />
+				</a>
 			</div>
 		</Link>
 	);

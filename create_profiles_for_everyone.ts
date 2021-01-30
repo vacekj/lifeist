@@ -19,7 +19,7 @@ async function main() {
 			.set(
 				{
 					email: u.email,
-					dipslayName: u.displayName,
+					displayName: u.displayName,
 					photoURL: u.photoURL
 				},
 				{ merge: true }
@@ -28,4 +28,4 @@ async function main() {
 	}
 }
 
-main();
+main().then(() => process.exit(0));

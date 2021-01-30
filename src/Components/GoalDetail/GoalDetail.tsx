@@ -113,13 +113,15 @@ const GoalDetail = () => {
 						)}
 
 						{goalOwner.data && goalOwner.data.uid !== auth?.uid && (
-							<p>
+							<div>
 								<p className="mr-2">{t("setBy")}</p>
-								<UserPill
-									name={goalOwner.data.displayName ?? ""}
-									photoURL={goalOwner.data.photoURL ?? ""}
-								/>
-							</p>
+								<a href={"/profile/" + goalOwner.data.uid}>
+									<UserPill
+										name={goalOwner.data.displayName ?? ""}
+										photoURL={goalOwner.data.photoURL ?? ""}
+									/>
+								</a>
+							</div>
 						)}
 
 						<div className="mt-2" />

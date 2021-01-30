@@ -11,12 +11,20 @@ import csLocale from "date-fns/locale/cs";
 import strings from "./strings";
 import { useCollectionData } from "react-firebase-hooks/firestore";
 import Goal from "Types/Goal.type";
-import { LiveInput } from "../../Utils/LiveInput";
+import { useLiveInput } from "Utils/LiveInput";
+import { FormLabel, HStack, Input, InputGroup, InputLeftElement, VStack } from "@chakra-ui/react";
 
 const Profile = () => {
 	const [user] = useAuthState(firebase.auth());
 	const history = useHistory();
 	const [t, changeLang] = useTranslation(strings);
+	const { value, onBlur, onChange } = useLiveInput(
+		firebase
+			.firestore()
+			.collection("profiles")
+			.doc(user?.uid),
+		"instagram"
+	);
 	const [goals] = useCollectionData<Goal>(
 		firebase
 			.firestore()
@@ -132,32 +140,35 @@ const Profile = () => {
 					)}
 				</div>
 
-				<div className="flex justify-between w-full mt-4 items-center">
-					<div className="text-lg ">{t("language")}</div>
-					<select
-						defaultValue={changeLang()}
-						onChange={e => changeLang(e.target.value)}
-						className="bg-gray-200 px-4 -pr-4 py-2 rounded"
-					>
-						<option value="cs">Česky</option>
-						<option value="en">English</option>
-					</select>
-				</div>
-
-				{user && (
+				<VStack w={"full"} justifyContent={"space-between"} spacing={4}>
 					<div className="flex justify-between w-full mt-4 items-center">
-						<label htmlFor="instagram">Instagram</label>
-						<LiveInput
+						<div className="text-lg ">{t("language")}</div>
+						<select
+							defaultValue={changeLang()}
+							onChange={e => changeLang(e.target.value)}
 							className="bg-gray-200 px-4 -pr-4 py-2 rounded"
-							name="instagram"
-							docRef={firebase
-								.firestore()
-								.collection("profiles")
-								.doc(user?.uid)}
-							field={"instagram"}
-						/>
+						>
+							<option value="cs">Česky</option>
+							<option value="en">English</option>
+						</select>
 					</div>
-				)}
+
+					{user && (
+						<HStack w={"full"} justifyContent={"space-between"}>
+							<FormLabel>First name</FormLabel>
+							<InputGroup w={"auto"}>
+								<InputLeftElement pointerEvents="none" children={"@"} />
+								<Input
+									onChange={onChange}
+									value={value}
+									pl={8}
+									onBlur={onBlur}
+									placeholder="Instagram handle"
+								/>
+							</InputGroup>
+						</HStack>
+					)}
+				</VStack>
 			</div>
 		</div>
 	);

@@ -3,6 +3,7 @@ import { useLocation } from "react-router";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import styles from "./BottomNavBar.module.css";
+import { HStack } from "@chakra-ui/react";
 
 function BottomNavBar() {
 	const tabs = [
@@ -57,11 +58,15 @@ function BottomNavBar() {
 	];
 
 	return (
-		<div className="shadow-lg fixed bottom-0 bg-white z-10 mx-auto flex-shrink-0 w-full h-20 flex items-center justify-evenly">
+		<HStack
+			maxW={[null, "3xl"]}
+			mx={"auto"}
+			className="shadow-lg fixed bottom-0 w-full bg-white z-10 h-20 flex items-center justify-evenly"
+		>
 			{tabs.map(t => (
 				<Tab key={t.url} {...t} />
 			))}
-		</div>
+		</HStack>
 	);
 }
 

@@ -15,11 +15,15 @@
     "ci": "start-server-and-test start-test-server http://localhost:3000 test"
   },
   "dependencies": {
+    "@chakra-ui/react": "^1.1.6",
+    "@emotion/react": "^11.1.4",
+    "@emotion/styled": "^11.0.0",
     "autoprefixer": "^9.7.4",
     "create-react-component-folder": "0.1.30",
     "date-fns": "^2.14.0",
     "firebase": "^8.0.0",
-    "framer-motion": "^1.11.0",
+    "firebase-admin": "^9.4.2",
+    "framer-motion": "^3.2.2-rc.1",
     "lodash": "^4.17.19",
     "postcss-cli": "^7.1.0",
     "react": "^16.13.1",

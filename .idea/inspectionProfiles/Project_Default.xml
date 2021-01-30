@@ -14,6 +14,9 @@
     </inspection_tool>
     <inspection_tool class="GrazieInspection" enabled="false" level="TYPO" enabled_by_default="false" />
     <inspection_tool class="LanguageDetectionInspection" enabled="false" level="WARNING" enabled_by_default="false" />
+    <inspection_tool class="RequiredAttributes" enabled="false" level="WARNING" enabled_by_default="false">
+      <option name="myAdditionalRequiredHtmlAttributes" value="" />
+    </inspection_tool>
     <inspection_tool class="SpellCheckingInspection" enabled="false" level="TYPO" enabled_by_default="false">
       <option name="processCode" value="true" />
       <option name="processLiterals" value="true" />
